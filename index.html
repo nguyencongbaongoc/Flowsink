@@ -1,13 +1,212 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>focusmate</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusMate — AI Health &amp; Routine Optimizer</title>
+  <meta name="description" content="Phân tích lịch sinh hoạt và đề xuất lịch trình tối ưu bằng AI" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="glass">
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <h1>FocusMate</h1>
+          <p>AI Health &amp; Routine Optimizer</p>
+        </div>
+      </div>
+      <button id="provider-btn" onclick="toggleProvider()" style="display: none;">
+        <span id="provider-icon">✨</span>
+        <span id="provider-label">Google Gemini</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- ==================== PROVIDER MODAL ==================== -->
+    <div id="provider-overlay" onclick="closeProvider(event)">
+      <div id="provider-panel" onclick="event.stopPropagation()">
+        <div class="provider-tabs">
+          <button class="ptab active" id="ptab-gemini" onclick="switchProvider('gemini')">✨ Google Gemini</button>
+          <button class="ptab" id="ptab-oai" onclick="switchProvider('openai')">🔌 OpenAI Compatible</button>
+        </div>
+
+        <!-- Gemini config -->
+        <div id="config-gemini">
+          <div class="field-group">
+            <label class="field-label">🔑 Gemini API Key</label>
+            <input id="gemini-key" class="form-input" type="password"
+              placeholder="Nhập key từ aistudio.google.com..." />
+          </div>
+          <a class="field-link" href="https://aistudio.google.com/app/apikey" target="_blank">Lấy API Key miễn phí →</a>
+        </div>
+
+        <!-- OpenAI-compatible config -->
+        <div id="config-oai" style="display:none">
+          <div class="field-group">
+            <label class="field-label">🌐 Chọn Provider</label>
+            <select id="oai-preset" class="form-input" onchange="applyPreset()">
+              <option value="groq">Groq (llama-3.3-70b-versatile) — Miễn phí, nhanh</option>
+              <option value="ollama">Ollama (Local — không cần key)</option>
+              <option value="openrouter">OpenRouter (đa mô hình)</option>
+              <option value="together">Together AI</option>
+              <option value="custom">Tùy chỉnh (nhập Base URL)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Base URL</label>
+            <input id="oai-base-url" class="form-input" type="text" placeholder="https://api.groq.com/openai/v1"
+              value="https://api.groq.com/openai/v1" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">🤖 Tên Model</label>
+            <input id="oai-model" class="form-input" type="text" placeholder="llama-3.3-70b-versatile"
+              value="llama-3.3-70b-versatile" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">🔑 API Key</label>
+            <input id="oai-key" class="form-input" type="password" placeholder="Nhập API Key của provider..." />
+          </div>
+          <div id="oai-docs-link"></div>
+        </div>
+
+        <button class="btn btn-primary btn-full mt-4" onclick="closeProvider()">✓ Xác nhận</button>
+      </div>
+    </div>
+
+    <!-- ==================== TABS ==================== -->
+    <div class="glass tabs" style="padding: .5rem; margin-bottom:0;">
+      <button class="tab active" onclick="switchTab('survey')" id="tab-survey">🧠 Khảo sát Lịch trình</button>
+      <button class="tab" onclick="switchTab('dashboard')" id="tab-dashboard">📊 Đánh giá Sức khỏe</button>
+      <button class="tab" onclick="switchTab('schedule')" id="tab-schedule">📅 Lịch đề xuất mới</button>
+      <button class="tab" onclick="switchTab('focus')" id="tab-focus">⏱️ Focus Mode</button>
+    </div>
+
+    <div class="glass panel">
+
+      <!-- ==================== SURVEY ==================== -->
+      <div class="tab-content active" id="content-survey">
+        <div class="section-header text-primary">⚡ Nhật ký sinh hoạt</div>
+        <p style="color:var(--muted);margin-bottom:2rem">AI sẽ phân tích các thói quen dưới đây để dự báo nguy cơ và đưa
+          ra lời khuyên sức khỏe dành riêng cho bạn.</p>
+        <form onsubmit="handleSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">🌙 Giờ đi ngủ thường xuyên</label>
+              <input id="sleepTime" class="form-input" type="time" value="23:00" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">⏰ Giờ thức dậy</label>
+              <input id="wakeTime" class="form-input" type="time" value="06:30" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">💧 Lượng nước uống (lít/ngày)</label>
+              <input id="waterIntake" class="form-input" type="number" step="0.1" min="0" max="10" value="2" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">🍽️ Số bữa ăn chính (bữa/ngày)</label>
+              <select id="meals" class="form-input">
+                <option value="1">1 bữa (Thường xuyên bỏ bữa)</option>
+                <option value="2">2 bữa</option>
+                <option value="3" selected>3 bữa (Tiêu chuẩn)</option>
+                <option value="4+">Nhiều hơn 3 bữa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🚿 Giờ tắm thường xuyên</label>
+              <input id="showerTime" class="form-input" type="time" value="19:00" />
+              <span class="form-hint">Tắm khuya rất nguy hiểm cho sức khỏe</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🖥️ Thời gian nhìn màn hình (giờ/ngày)</label>
+              <input id="screenTime" class="form-input" type="number" min="0" max="24" value="5" />
+            </div>
+            <div class="form-group full-width">
+              <button class="btn btn-primary btn-full" type="submit" id="submit-btn">
+                📤 Phân tích Lịch trình
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ==================== DASHBOARD ==================== -->
+      <div class="tab-content" id="content-dashboard">
+        <div id="dashboard-content">
+          <div class="empty-state">
+            <div style="font-size:3rem;margin-bottom:1rem">📊</div>
+            <h3>Chưa có dữ liệu phân tích</h3>
+            <p>Hãy hoàn thành bài khảo sát để xem kết quả sức khỏe.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SCHEDULE ==================== -->
+      <div class="tab-content" id="content-schedule">
+        <div id="schedule-content">
+          <div class="empty-state">
+            <div style="font-size:3rem;margin-bottom:1rem">📅</div>
+            <h3>Chưa có lịch đề xuất</h3>
+            <p>Hoàn thành khảo sát để AI tạo lịch trình tối ưu cho bạn.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== FOCUS MODE ==================== -->
+      <div class="tab-content" id="content-focus">
+        <div class="text-center">
+          <h2 class="text-primary mb-2">⏱️ Góc Tập Trung (Pomodoro 45/5)</h2>
+          <p style="color:var(--muted);max-width:580px;margin:0 auto 1.5rem">
+            Phương pháp học 45 phút, nghỉ 5 phút kết hợp các bài tập thư giãn giúp bảo vệ mắt và cột sống.
+          </p>
+
+          <div id="timer-circle" class="timer-circle"
+            style="border:8px solid var(--primary);background:rgba(15,23,42,.6);box-shadow:0 0 40px rgba(59,130,246,.2)">
+            <div class="timer-inner">
+              <div class="timer-time" id="timer-display">45:00</div>
+              <div class="timer-label text-primary" id="timer-mode-label">▶ Bắt đầu học</div>
+            </div>
+          </div>
+
+          <div class="flex gap-3 items-center" style="justify-content:center;margin-bottom:1.5rem">
+            <button class="btn btn-primary" id="focus-toggle-btn" onclick="toggleFocus()" style="width:150px">▶ Bắt
+              đầu</button>
+            <button class="btn btn-outline" onclick="resetFocus()">🔄 Làm mới</button>
+          </div>
+
+          <div id="rest-tips" style="display:none;max-width:640px;margin:0 auto">
+            <div class="glass" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3)">
+              <h3 class="text-success mb-4" style="text-align:center">☕ Đã đến giờ giải lao (5 phút)</h3>
+              <div class="rest-tips">
+                <div class="glass" style="background:rgba(15,23,42,.8)">
+                  <h4 class="text-primary mb-2">👁️ Thư giãn Mắt (20-20-20)</h4>
+                  <p style="color:var(--muted);font-size:.9rem">Rời mắt khỏi màn hình, nhìn ra xa ít nhất 6 mét trong
+                    vòng 20 giây và chớp mắt liên tục.</p>
+                </div>
+                <div class="glass" style="background:rgba(15,23,42,.8)">
+                  <h4 class="text-primary mb-2">🧘 Vận động Cột sống</h4>
+                  <p style="color:var(--muted);font-size:.9rem">Đứng dậy, vươn vai cao, đi vặn mình nhẹ nhàng và uống 1
+                    ngụm nước lọc.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end .panel -->
+  </div><!-- end .container -->
+
+  <script src="script.js"></script>
+</body>
+
 </html>
