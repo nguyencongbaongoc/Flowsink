@@ -619,13 +619,256 @@ code {
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .15);
   border-radius: 3px;
 }
+
+/* ===================== TIMETABLE & PALETTE ===================== */
+.palette-box {
+  padding: 1rem 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+}
+
+.palette-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #93c5fd;
+  margin-bottom: 0.75rem;
+}
+
+.palette-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.palette-tag {
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.palette-tag:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}
+
+.palette-tag.active {
+  box-shadow: 0 0 0 2px var(--primary), 0 0 15px rgba(59, 130, 246, 0.4);
+  filter: brightness(1.25);
+}
+
+.palette-tag[data-type="work"] { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+.palette-tag[data-type="sleep"] { border-color: rgba(139, 92, 246, 0.5); background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+.palette-tag[data-type="meal"] { border-color: rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+.palette-tag[data-type="sport"] { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+.palette-tag[data-type="screen"] { border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.palette-tag[data-type="bath"] { border-color: rgba(6, 182, 212, 0.5); background: rgba(6, 182, 212, 0.15); color: #67e8f9; }
+.palette-tag[data-type="other"] { border-color: rgba(148, 163, 184, 0.5); background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+
+.timetable-scroll-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(10, 15, 30, 0.7);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.timetable-grid {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+  font-size: 0.82rem;
+}
+
+.timetable-grid th {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  letter-spacing: 0.02em;
+}
+
+.timetable-grid th:first-child {
+  background: #0f172a;
+  color: #38bdf8;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.timetable-grid td {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.35rem 0.4rem;
+  height: 52px;
+  vertical-align: middle;
+  transition: background 0.15s;
+}
+
+.timetable-grid td.time-col {
+  background: #0f172a;
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.76rem;
+  text-align: center;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  border-right: 2px solid rgba(59, 130, 246, 0.2);
+}
+
+.cell-btn {
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 0.25rem 0.35rem;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.25;
+  transition: all 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: inherit;
+}
+
+.cell-btn:hover {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.15);
+  transform: scale(1.02);
+}
+
+.cell-btn.type-work { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #bfdbfe; }
+.cell-btn.type-sleep { background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.4); color: #ddd6fe; }
+.cell-btn.type-meal { background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fde68a; }
+.cell-btn.type-sport { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #a7f3d0; }
+.cell-btn.type-screen { background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fecaca; }
+.cell-btn.type-bath { background: rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.4); color: #a5f3fc; }
+.cell-btn.type-other { background: rgba(148, 163, 184, 0.15); border-color: rgba(148, 163, 184, 0.3); color: #e2e8f0; }
+
+/* ===================== BIOMARKER & RISK CARDS ===================== */
+.biomarker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .biomarker-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.biomarker-card {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.biomarker-title {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.biomarker-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.pathology-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--danger);
+  transition: all 0.2s;
+}
+
+.pathology-card:hover {
+  background: rgba(15, 23, 42, 0.95);
+  transform: translateX(4px);
+}
+
+.mechanism-box {
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+  color: #fca5a5;
+}
+
+.consequence-box {
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+  color: #fde68a;
+}
+
+.clinical-advice-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  margin-bottom: 1rem;
+}
+
+.clinical-advice-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #6ee7b7;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.clinical-advice-text {
+  font-size: 0.92rem;
+  color: #f1f5f9;
+  line-height: 1.7;
+}
+

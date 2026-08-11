@@ -95,48 +95,74 @@
 
       <!-- ==================== SURVEY ==================== -->
       <div class="tab-content active" id="content-survey">
-        <div class="section-header text-primary">⚡ Nhật ký sinh hoạt</div>
-        <p style="color:var(--muted);margin-bottom:2rem">AI sẽ phân tích các thói quen dưới đây để dự báo nguy cơ và đưa
-          ra lời khuyên sức khỏe dành riêng cho bạn.</p>
-        <form onsubmit="handleSubmit(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">🌙 Giờ đi ngủ thường xuyên</label>
-              <input id="sleepTime" class="form-input" type="time" value="23:00" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">⏰ Giờ thức dậy</label>
-              <input id="wakeTime" class="form-input" type="time" value="06:30" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">💧 Lượng nước uống (lít/ngày)</label>
-              <input id="waterIntake" class="form-input" type="number" step="0.1" min="0" max="10" value="2" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">🍽️ Số bữa ăn chính (bữa/ngày)</label>
-              <select id="meals" class="form-input">
-                <option value="1">1 bữa (Thường xuyên bỏ bữa)</option>
-                <option value="2">2 bữa</option>
-                <option value="3" selected>3 bữa (Tiêu chuẩn)</option>
-                <option value="4+">Nhiều hơn 3 bữa</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">🚿 Giờ tắm thường xuyên</label>
-              <input id="showerTime" class="form-input" type="time" value="19:00" />
-              <span class="form-hint">Tắm khuya rất nguy hiểm cho sức khỏe</span>
-            </div>
-            <div class="form-group">
-              <label class="form-label">🖥️ Thời gian nhìn màn hình (giờ/ngày)</label>
-              <input id="screenTime" class="form-input" type="number" min="0" max="24" value="5" />
-            </div>
-            <div class="form-group full-width">
-              <button class="btn btn-primary btn-full" type="submit" id="submit-btn">
-                📤 Phân tích Lịch trình
-              </button>
-            </div>
+        <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap;gap:1rem">
+          <div>
+            <div class="section-header text-primary" style="margin-bottom:.25rem">📅 Bảng Thời Khóa Biểu Sinh Hoạt Tuần</div>
+            <p style="color:var(--muted);font-size:.88rem">Nhập hoặc chọn hoạt động theo từng khung giờ trong 7 ngày. AI sẽ phân tích nhịp sinh học và cảnh báo nguy cơ y khoa chi tiết.</p>
           </div>
-        </form>
+          <div class="flex gap-2" style="flex-wrap:wrap">
+            <button class="btn btn-outline" type="button" onclick="loadSampleSchedule('student')">📚 Lịch Sinh viên thức khuya</button>
+            <button class="btn btn-outline" type="button" onclick="loadSampleSchedule('office')">💼 Lịch Dân văn phòng</button>
+            <button class="btn btn-outline" type="button" onclick="clearWeeklyTable()" style="color:var(--danger);border-color:rgba(239,68,68,.3)">🗑️ Xóa trắng</button>
+          </div>
+        </div>
+
+        <!-- Quick Activity Palette -->
+        <div class="glass mb-4 palette-box">
+          <div class="palette-title">🎨 Bảng chọn nhanh hoạt động (Click để chọn, sau đó click vào các ô trên bảng để gán nhanh):</div>
+          <div class="palette-list" id="palette-container">
+            <button type="button" class="palette-tag active" data-type="work" onclick="selectPalette('work', '📘 Học tập / Làm việc')">📘 Học tập / Làm việc</button>
+            <button type="button" class="palette-tag" data-type="sleep" onclick="selectPalette('sleep', '😴 Ngủ / Nghỉ ngơi')">😴 Ngủ / Nghỉ ngơi</button>
+            <button type="button" class="palette-tag" data-type="meal" onclick="selectPalette('meal', '🍱 Ăn uống')">🍱 Ăn uống</button>
+            <button type="button" class="palette-tag" data-type="sport" onclick="selectPalette('sport', '🏃 Thể thao / Vận động')">🏃 Thể thao / Vận động</button>
+            <button type="button" class="palette-tag" data-type="screen" onclick="selectPalette('screen', '📱 Màn hình / Giải trí')">📱 Màn hình / Giải trí</button>
+            <button type="button" class="palette-tag" data-type="bath" onclick="selectPalette('bath', '🚿 Tắm rửa / Cá nhân')">🚿 Tắm rửa / Cá nhân</button>
+            <button type="button" class="palette-tag" data-type="other" onclick="selectPalette('other', '🛋️ Tự do / Khác')">🛋️ Tự do / Khác</button>
+          </div>
+        </div>
+
+        <!-- Weekly Timetable Grid -->
+        <div class="timetable-scroll-wrapper mb-4">
+          <table class="timetable-grid" id="weekly-timetable">
+            <thead>
+              <tr>
+                <th style="width:130px">Khung giờ</th>
+                <th>Thứ 2</th>
+                <th>Thứ 3</th>
+                <th>Thứ 4</th>
+                <th>Thứ 5</th>
+                <th>Thứ 6</th>
+                <th>Thứ 7</th>
+                <th>Chủ Nhật</th>
+              </tr>
+            </thead>
+            <tbody id="timetable-body">
+              <!-- Dynamically generated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Additional Health Parameters -->
+        <div class="form-grid mb-4" style="background:rgba(255,255,255,.02);padding:1rem;border-radius:10px;border:1px solid var(--border)">
+          <div class="form-group">
+            <label class="form-label">💧 Lượng nước uống trung bình (lít/ngày)</label>
+            <input id="waterIntake" class="form-input" type="number" step="0.1" min="0" max="10" value="2.0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">📊 Mức độ áp lực / Căng thẳng (Stress)</label>
+            <select id="stressLevel" class="form-input">
+              <option value="Thấp">Thấp — Cảm thấy thoải mái</option>
+              <option value="Trung bình" selected>Trung bình — Đôi khi áp lực thi cử/deadline</option>
+              <option value="Cao">Cao — Thường xuyên mất ngủ, lo âu, kiệt sức</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <button class="btn btn-primary btn-full" type="button" id="submit-btn" onclick="handleWeeklySubmit()" style="font-size:1.05rem;padding:.85rem">
+            🧠 Phân tích Y khoa &amp; Đề xuất Tối ưu Sinh học
+          </button>
+        </div>
       </div>
 
       <!-- ==================== DASHBOARD ==================== -->
