@@ -1,0 +1,1 @@
+"""Adapters — platform-specific and mock implementations of the ports."""

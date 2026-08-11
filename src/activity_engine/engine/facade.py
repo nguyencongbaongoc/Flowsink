@@ -1,0 +1,165 @@
+"""Public facade — the single entry point for the Activity Engine.
+
+The facade wires configuration, policy, engines, persistence and adapters
+into a coherent pipeline:
+
+    raw adapter events -> EventEngine -> PolicyEngine -> StateEngine
+    -> EscalationEngine -> ActionEngine
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from ..config.loader import load_dev_config, resolve_device_id
+from ..config.models import Config, EnforcementMode
+from ..core.events import ActivityEvent
+from ..policy.loader import load_default_policy
+from ..core.policies import PolicyDocument
+from ..core.states import StateSnapshot
+from ..domain.violations import ViolationRecord
+from ..persistence.repository import InMemoryActivityRepository
+from .action_engine import ActionEngine
+from .escalation_engine import EscalationEngine
+from .event_engine import EventEngine
+from .policy_engine import PolicyEngine
+from .state_engine import StateEngine
+from ..utils.logging import create_logger
+
+_logger = create_logger()
+
+class ActivityEngine:
+    """Configured and ready-to-run Activity Engine."""
+
+    def __init__(
+        self,
+        config: Config | None = None,
+        policy: PolicyDocument | None = None,
+        executor: object | None = None,
+        event_engine: EventEngine | None = None,
+        policy_engine: PolicyEngine | None = None,
+        state_engine: StateEngine | None = None,
+        action_engine: ActionEngine | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize the engine.
+
+        Provide custom engines/adapters for full control; otherwise sensible
+        defaults are created from ``config``.
+        """
+        self._config = config or load_dev_config()
+        self._student_id = kwargs.pop("student_id", None)
+        self._device_id = kwargs.pop("device_id", None) or resolve_device_id(self._config)
+
+        try:
+            self._policy = policy or load_default_policy()
+        except Exception as exc:  # noqa: BLE001
+            _logger.warning("default_policy_load_failed error=%s falling_back=empty", exc)
+            self._policy = PolicyDocument()
+
+        self._executor = executor or self._default_executor()
+        mode = self._config.runtime.mode if hasattr(self._config, "runtime") else EnforcementMode.DRY_RUN
+
+        # Engine wiring
+        self._event_engine = event_engine or EventEngine(
+            device_id=self._device_id,
+            student_id=self._student_id,
+        )
+        self._state_engine = state_engine or StateEngine(
+            device_id=self._device_id,
+            student_id=self._student_id,
+        )
+        self._policy_engine = policy_engine or PolicyEngine(
+            policy=self._policy,
+            device_id=self._device_id,
+            student_id=self._student_id,
+        )
+        self._action_engine = action_engine or ActionEngine(
+            executor=self._executor,
+            mode=mode,
+        )
+        self._escalation_engine = EscalationEngine(default_policy_id=self._policy.version)
+
+        self._repository = InMemoryActivityRepository()
+
+        # Subscribe pipeline: raw/processed events flow to policy engine.
+        async def _route(event: ActivityEvent) -> None:
+            try:
+                decision = self._policy_engine.evaluate(event)
+                snapshot = self._state_engine.apply_decision(decision)
+                await self._repository.store_event(event)
+                await self._repository.store_state(snapshot)
+                if decision.action_types:
+                    for action in self._escalation_engine.plan(decision):
+                        result = await self._action_engine.execute(action)
+                        if result.status.value != "SUCCESS":
+                            _logger.warning("action=%s status=%s code=%s", action.action.value, result.status.value, result.error_code)
+            except Exception as exc:  # noqa: BLE001 - fault isolation
+                _logger.warning("pipeline_error error=%s", exc)
+
+        self._event_engine.subscribe(_route)
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+    def start_session(self) -> str:
+        """Begin a monitoring session. Returns the session id."""
+        session = self._state_engine.start_session(
+            self._student_id or "unknown-student",
+            self._device_id,
+        )
+        _logger.info("session=started session_id=%s device=%s", session.session_id, self._device_id)
+        return session.session_id
+
+    def end_session(self) -> None:
+        """End the active monitoring session."""
+        self._state_engine.end_session(self._student_id or "unknown-student", self._device_id)
+
+    # ------------------------------------------------------------------
+    # Event intake
+    # ------------------------------------------------------------------
+    async def feed_raw(self, raw: dict[str, Any]) -> ActivityEvent | None:
+        """Feed a raw adapter event into the pipeline."""
+        return await self._event_engine.process_raw(raw)
+
+    async def feed(self, event: ActivityEvent) -> ActivityEvent:
+        """Feed an already-normalized event into the pipeline."""
+        return await self._event_engine.process(event)
+
+    # ------------------------------------------------------------------
+    # Queries
+    # ------------------------------------------------------------------
+    def current_state(self, student_id: str | None = None) -> StateSnapshot | None:
+        return self._state_engine.get_snapshot(
+            student_id or self._student_id or "unknown-student",
+            self._device_id,
+        )
+
+    async def recent_events(self, limit: int = 50) -> list[ActivityEvent]:
+        return await self._repository.get_events(limit=limit)
+
+    async def violations(self, student_id: str | None = None, limit: int = 50) -> list[ViolationRecord]:
+        return await self._repository.get_violations(
+            student_id or self._student_id or "unknown-student",
+            limit=limit,
+        )
+
+    def metrics(self) -> dict[str, Any]:
+        """Aggregate engine metrics."""
+        return {
+            "event_engine": dict(self._event_engine.metrics),
+            "policy_engine": dict(self._policy_engine.metrics),
+            "action_engine": dict(self._action_engine.metrics),
+        }
+
+    @property
+    def policy(self) -> PolicyDocument:
+        return self._policy
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+    def _default_executor(self) -> object:
+        """Pick the default action executor for the current platform."""
+        from ..adapters.mock.action_executor import MockActionExecutor
+        return MockActionExecutor()

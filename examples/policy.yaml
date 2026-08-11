@@ -1,0 +1,53 @@
+# Example policy for the Student Activity Monitoring Engine.
+# This file is fully configurable. See docs/POLICY_ENGINE.md for syntax.
+version: "1"
+
+focus:
+  enabled: true
+  allowed_domains:
+    - classroom.google.com
+    - docs.google.com
+    - wikipedia.org
+    - "*.google.com"
+
+  blocked_domains:
+    - facebook.com
+    - tiktok.com
+    - youtube.com
+    - instagram.com
+    - discord.com
+    - twitch.tv
+    - netflix.com
+
+  allowed_apps:
+    - Chrome
+    - Microsoft Edge
+    - Firefox
+    - Code
+    - Visual Studio Code
+    - word
+    - excel
+    - powerpoint
+
+  blocked_apps:
+    - Discord
+    - Steam
+    - Spotify
+    - Valorant
+    - League of Legends
+    - Roblox
+    - Minecraft
+
+  allowed_url_patterns: []
+
+escalation:
+  level_1_delay_seconds: 10
+  level_2_delay_seconds: 30
+  level_3_violation_threshold: 3
+
+bedtime:
+  enabled: false
+  start_time: "22:30"
+  level_1_warning_minutes: 15
+  level_2_warning_minutes: 5
+  level_3_action: restricted_mode

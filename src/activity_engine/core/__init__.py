@@ -1,0 +1,1 @@
+"""Core domain types — framework-independent and platform-independent."""
