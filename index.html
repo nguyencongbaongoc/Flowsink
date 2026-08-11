@@ -109,24 +109,23 @@
 
         <!-- Quick Activity Palette -->
         <div class="glass mb-4 palette-box">
-          <div class="palette-title">🎨 Bảng chọn nhanh hoạt động (Click để chọn, sau đó click vào các ô trên bảng để gán nhanh):</div>
+          <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap;gap:.5rem">
+            <div class="palette-title" style="margin:0">🎨 Danh mục hoạt động (Click để chọn, sau đó click ô trên bảng để gán nhanh):</div>
+            <button type="button" class="btn btn-outline" style="padding:.3rem .75rem;font-size:.78rem;color:#38bdf8;border-color:rgba(56,189,248,.3)" onclick="openNewActivityModal()">
+              ➕ Thêm hoạt động mới
+            </button>
+          </div>
           <div class="palette-list" id="palette-container">
-            <button type="button" class="palette-tag active" data-type="work" onclick="selectPalette('work', '📘 Học tập / Làm việc')">📘 Học tập / Làm việc</button>
-            <button type="button" class="palette-tag" data-type="sleep" onclick="selectPalette('sleep', '😴 Ngủ / Nghỉ ngơi')">😴 Ngủ / Nghỉ ngơi</button>
-            <button type="button" class="palette-tag" data-type="meal" onclick="selectPalette('meal', '🍱 Ăn uống')">🍱 Ăn uống</button>
-            <button type="button" class="palette-tag" data-type="sport" onclick="selectPalette('sport', '🏃 Thể thao / Vận động')">🏃 Thể thao / Vận động</button>
-            <button type="button" class="palette-tag" data-type="screen" onclick="selectPalette('screen', '📱 Màn hình / Giải trí')">📱 Màn hình / Giải trí</button>
-            <button type="button" class="palette-tag" data-type="bath" onclick="selectPalette('bath', '🚿 Tắm rửa / Cá nhân')">🚿 Tắm rửa / Cá nhân</button>
-            <button type="button" class="palette-tag" data-type="other" onclick="selectPalette('other', '🛋️ Tự do / Khác')">🛋️ Tự do / Khác</button>
+            <!-- Dynamically generated palette tags -->
           </div>
         </div>
 
         <!-- Weekly Timetable Grid -->
-        <div class="timetable-scroll-wrapper mb-4">
+        <div class="timetable-scroll-wrapper mb-2">
           <table class="timetable-grid" id="weekly-timetable">
             <thead>
               <tr>
-                <th style="width:130px">Khung giờ</th>
+                <th style="width:145px">Khung giờ</th>
                 <th>Thứ 2</th>
                 <th>Thứ 3</th>
                 <th>Thứ 4</th>
@@ -140,6 +139,21 @@
               <!-- Dynamically generated rows -->
             </tbody>
           </table>
+        </div>
+
+        <!-- Timetable Slot Controls -->
+        <div class="flex justify-between items-center mb-4" style="flex-wrap:wrap;gap:.5rem;padding:.5rem 0">
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-outline" style="padding:.4rem .9rem;font-size:.82rem" onclick="openAddSlotModal()">
+              ➕ Thêm Khung Giờ Mới
+            </button>
+            <button type="button" class="btn btn-outline" style="padding:.4rem .9rem;font-size:.82rem;color:var(--muted)" onclick="resetDefaultSlots()">
+              🔄 Khôi phục khung giờ gốc
+            </button>
+          </div>
+          <div style="font-size:.8rem;color:var(--muted)">
+            💡 <em>Mẹo: Click vào ô để gán nhanh danh mục, hoặc bấm vào icon ✏️ ở ô để gõ nội dung chi tiết.</em>
+          </div>
         </div>
 
         <!-- Additional Health Parameters -->
@@ -162,6 +176,83 @@
           <button class="btn btn-primary btn-full" type="button" id="submit-btn" onclick="handleWeeklySubmit()" style="font-size:1.05rem;padding:.85rem">
             🧠 Phân tích Y khoa &amp; Đề xuất Tối ưu Sinh học
           </button>
+        </div>
+      </div>
+
+      <!-- ==================== MODAL: THÊM HOẠT ĐỘNG MỚI ==================== -->
+      <div id="modal-activity" class="custom-modal-overlay" onclick="closeCustomModal('modal-activity', event)">
+        <div class="glass custom-modal-box" onclick="event.stopPropagation()">
+          <h3 class="text-primary mb-4">➕ Thêm Hoạt Động Tùy Chỉnh</h3>
+          <div class="form-group mb-3">
+            <label class="form-label">Tên hoạt động (Kèm emoji)</label>
+            <input id="new-act-name" class="form-input" type="text" placeholder="VD: 🎸 Luyện đàn Guitar, 📐 Ôn Toán..." />
+          </div>
+          <div class="form-group mb-4">
+            <label class="form-label">Màu sắc &amp; Phân loại sinh học</label>
+            <select id="new-act-type" class="form-input">
+              <option value="work">📘 Học tập / Công việc (Xanh dương)</option>
+              <option value="sleep">😴 Ngủ / Nghỉ ngơi (Tím)</option>
+              <option value="meal">🍱 Ăn uống / Năng lượng (Vàng cam)</option>
+              <option value="sport">🏃 Thể thao / Vận động (Xanh lá)</option>
+              <option value="screen">📱 Màn hình / Giải trí (Đỏ nhạt)</option>
+              <option value="bath">🚿 Vệ sinh / Tắm rửa (Cyan)</option>
+              <option value="other">🛋️ Tự do / Khác (Xám sáng)</option>
+            </select>
+          </div>
+          <div class="flex gap-2 justify-between">
+            <button type="button" class="btn btn-outline" onclick="closeCustomModal('modal-activity')">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="saveNewActivity()">✓ Thêm hoạt động</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== MODAL: THÊM / SỬA KHUNG GIỜ ==================== -->
+      <div id="modal-slot" class="custom-modal-overlay" onclick="closeCustomModal('modal-slot', event)">
+        <div class="glass custom-modal-box" onclick="event.stopPropagation()">
+          <h3 class="text-primary mb-4" id="slot-modal-title">⏱️ Thêm Khung Giờ Mới</h3>
+          <input type="hidden" id="slot-edit-idx" value="-1" />
+          <div class="form-group mb-3">
+            <label class="form-label">Khoảng thời gian</label>
+            <input id="slot-time-input" class="form-input" type="text" placeholder="VD: 05:30 - 06:30 hoặc 07:15 - 08:00" />
+          </div>
+          <div class="form-group mb-4">
+            <label class="form-label">Tên nhãn mô tả</label>
+            <input id="slot-label-input" class="form-input" type="text" placeholder="VD: Tiết 1, Sáng sớm, Thể dục sáng..." />
+          </div>
+          <div class="flex gap-2 justify-between">
+            <button type="button" class="btn btn-outline" onclick="closeCustomModal('modal-slot')">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="saveSlot()">✓ Lưu khung giờ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== MODAL: SỬA CHI TIẾT Ô ==================== -->
+      <div id="modal-cell" class="custom-modal-overlay" onclick="closeCustomModal('modal-cell', event)">
+        <div class="glass custom-modal-box" onclick="event.stopPropagation()">
+          <h3 class="text-primary mb-2">✏️ Chỉnh Sửa Chi Tiết Ô</h3>
+          <p id="cell-modal-pos" style="color:var(--muted);font-size:.82rem;margin-bottom:1rem">Thứ 2 | 08:30 - 11:30</p>
+          <input type="hidden" id="cell-edit-r" value="-1" />
+          <input type="hidden" id="cell-edit-c" value="-1" />
+          <div class="form-group mb-3">
+            <label class="form-label">Nội dung hoạt động</label>
+            <input id="cell-text-input" class="form-input" type="text" placeholder="VD: Học Toán Hình, Ngủ trưa, Ôn thi..." />
+          </div>
+          <div class="form-group mb-4">
+            <label class="form-label">Loại hoạt động</label>
+            <select id="cell-type-select" class="form-input">
+              <option value="work">📘 Học tập / Làm việc</option>
+              <option value="sleep">😴 Ngủ / Nghỉ ngơi</option>
+              <option value="meal">🍱 Ăn uống</option>
+              <option value="sport">🏃 Thể thao / Vận động</option>
+              <option value="screen">📱 Màn hình / Giải trí</option>
+              <option value="bath">🚿 Tắm rửa / Cá nhân</option>
+              <option value="other">🛋️ Tự do / Khác</option>
+            </select>
+          </div>
+          <div class="flex gap-2 justify-between">
+            <button type="button" class="btn btn-outline" onclick="closeCustomModal('modal-cell')">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="saveCellDetail()">✓ Cập nhật ô</button>
+          </div>
         </div>
       </div>
 

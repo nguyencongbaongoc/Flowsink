@@ -8,7 +8,7 @@ let focusMode = 'work';   // 'work' | 'rest'
 let focusTimeLeft = 45 * 60;
 let focusInterval = null;
 
-const TIME_SLOTS = [
+const DEFAULT_TIME_SLOTS = [
   { id: 's1', time: '06:00 - 07:00', label: 'Sáng sớm' },
   { id: 's2', time: '07:00 - 08:30', label: 'Đầu sáng' },
   { id: 's3', time: '08:30 - 11:30', label: 'Giữa sáng' },
@@ -21,6 +21,8 @@ const TIME_SLOTS = [
   { id: 's10', time: '00:00 - 06:00', label: 'Giấc ngủ đêm' },
 ];
 
+let timeSlots = JSON.parse(JSON.stringify(DEFAULT_TIME_SLOTS));
+
 const DAYS = [
   { id: 'mon', name: 'Thứ 2' },
   { id: 'tue', name: 'Thứ 3' },
@@ -31,12 +33,24 @@ const DAYS = [
   { id: 'sun', name: 'Chủ Nhật' },
 ];
 
+const DEFAULT_ACTIVITIES = [
+  { id: 'act_work', type: 'work', label: '📘 Học tập / Làm việc' },
+  { id: 'act_sleep', type: 'sleep', label: '😴 Ngủ / Nghỉ ngơi' },
+  { id: 'act_meal', type: 'meal', label: '🍱 Ăn uống' },
+  { id: 'act_sport', type: 'sport', label: '🏃 Thể thao / Vận động' },
+  { id: 'act_screen', type: 'screen', label: '📱 Màn hình / Giải trí' },
+  { id: 'act_bath', type: 'bath', label: '🚿 Tắm rửa / Cá nhân' },
+  { id: 'act_other', type: 'other', label: '🛋️ Tự do / Khác' },
+];
+
+let customActivities = JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES));
+
 let selectedPalette = {
   type: 'work',
   label: '📘 Học tập / Làm việc'
 };
 
-// Data grid: 10 rows x 7 days
+// Data grid: rows x 7 days
 let timetableData = [];
 
 const PRESETS = {
@@ -48,25 +62,80 @@ const PRESETS = {
 };
 
 /* =====================================================================
-   GRID INITIALIZATION & INTERACTION
+   PALETTE ENGINE (CUSTOM ACTIVITIES)
+===================================================================== */
+function renderPalette() {
+  const container = document.getElementById('palette-container');
+  if (!container) return;
+
+  container.innerHTML = customActivities.map(act => `
+    <button type="button" class="palette-tag ${act.type === selectedPalette.type && act.label === selectedPalette.label ? 'active' : ''}" data-type="${act.type}" onclick="selectPalette('${act.type}', '${act.label}')">
+      ${act.label}
+    </button>
+  `).join('');
+}
+
+function selectPalette(type, label) {
+  selectedPalette = { type, label };
+  renderPalette();
+}
+
+function openNewActivityModal() {
+  document.getElementById('new-act-name').value = '';
+  openCustomModal('modal-activity');
+}
+
+function saveNewActivity() {
+  const name = document.getElementById('new-act-name').value.trim();
+  const type = document.getElementById('new-act-type').value;
+
+  if (!name) {
+    alert('Vui lòng nhập tên hoạt động!');
+    return;
+  }
+
+  customActivities.push({
+    id: 'act_' + Date.now(),
+    type,
+    label: name
+  });
+
+  selectedPalette = { type, label: name };
+  renderPalette();
+  closeCustomModal('modal-activity');
+}
+
+/* =====================================================================
+   TIME SLOTS ENGINE (CUSTOMIZABLE ROWS)
 ===================================================================== */
 function initTimetable() {
-  timetableData = TIME_SLOTS.map(() => DAYS.map(() => ({ type: 'other', text: '🛋️ Tự do' })));
+  timetableData = timeSlots.map(() => DAYS.map(() => ({ type: 'other', text: '🛋️ Tự do' })));
   renderTimetable();
 }
 
 function renderTimetable() {
   const tbody = document.getElementById('timetable-body');
   if (!tbody) return;
-  
-  tbody.innerHTML = TIME_SLOTS.map((slot, rIdx) => {
+
+  // Make sure timetableData row count matches timeSlots
+  while (timetableData.length < timeSlots.length) {
+    timetableData.push(DAYS.map(() => ({ type: 'other', text: '🛋️ Tự do' })));
+  }
+  if (timetableData.length > timeSlots.length) {
+    timetableData = timetableData.slice(0, timeSlots.length);
+  }
+
+  tbody.innerHTML = timeSlots.map((slot, rIdx) => {
     const cells = DAYS.map((day, cIdx) => {
-      const item = timetableData[rIdx][cIdx];
+      const item = timetableData[rIdx][cIdx] || { type: 'other', text: '🛋️ Tự do' };
       return `
         <td>
-          <button type="button" class="cell-btn type-${item.type}" onclick="handleCellClick(${rIdx}, ${cIdx})" title="Nhấp để gán: ${selectedPalette.label}">
-            ${item.text}
-          </button>
+          <div class="cell-container">
+            <button type="button" class="cell-btn type-${item.type}" onclick="handleCellClick(${rIdx}, ${cIdx})" title="Click để gán: ${selectedPalette.label}">
+              ${item.text}
+            </button>
+            <button type="button" class="cell-edit-btn" onclick="openEditCellModal(${rIdx}, ${cIdx}, event)" title="Sửa chi tiết">✏️</button>
+          </div>
         </td>
       `;
     }).join('');
@@ -74,20 +143,17 @@ function renderTimetable() {
     return `
       <tr>
         <td class="time-col">
-          <div>${slot.time}</div>
-          <div style="font-size:.7rem;color:var(--muted);font-weight:400">${slot.label}</div>
+          <div style="font-weight:700">${slot.time}</div>
+          <div style="font-size:.7rem;color:var(--muted);margin:.15rem 0">${slot.label}</div>
+          <div class="flex gap-1" style="justify-content:center;margin-top:.2rem">
+            <button type="button" class="slot-action-btn" onclick="openEditSlotModal(${rIdx})" title="Chỉnh sửa khung giờ">✏️</button>
+            <button type="button" class="slot-action-btn del" onclick="deleteSlot(${rIdx})" title="Xóa khung giờ này">🗑️</button>
+          </div>
         </td>
         ${cells}
       </tr>
     `;
   }).join('');
-}
-
-function selectPalette(type, label) {
-  selectedPalette = { type, label };
-  document.querySelectorAll('.palette-tag').forEach(tag => {
-    tag.classList.toggle('active', tag.getAttribute('data-type') === type);
-  });
 }
 
 function handleCellClick(rIdx, cIdx) {
@@ -98,6 +164,123 @@ function handleCellClick(rIdx, cIdx) {
   renderTimetable();
 }
 
+function openAddSlotModal() {
+  document.getElementById('slot-modal-title').textContent = '⏱️ Thêm Khung Giờ Mới';
+  document.getElementById('slot-edit-idx').value = '-1';
+  document.getElementById('slot-time-input').value = '';
+  document.getElementById('slot-label-input').value = '';
+  openCustomModal('modal-slot');
+}
+
+function openEditSlotModal(idx) {
+  const slot = timeSlots[idx];
+  document.getElementById('slot-modal-title').textContent = '✏️ Chỉnh Sửa Khung Giờ';
+  document.getElementById('slot-edit-idx').value = String(idx);
+  document.getElementById('slot-time-input').value = slot.time;
+  document.getElementById('slot-label-input').value = slot.label;
+  openCustomModal('modal-slot');
+}
+
+function saveSlot() {
+  const idx = parseInt(document.getElementById('slot-edit-idx').value, 10);
+  const time = document.getElementById('slot-time-input').value.trim();
+  const label = document.getElementById('slot-label-input').value.trim() || 'Tùy chỉnh';
+
+  if (!time) {
+    alert('Vui lòng nhập khoảng thời gian (VD: 07:00 - 08:30)!');
+    return;
+  }
+
+  if (idx >= 0 && idx < timeSlots.length) {
+    // Edit existing slot
+    timeSlots[idx].time = time;
+    timeSlots[idx].label = label;
+  } else {
+    // Add new slot
+    timeSlots.push({
+      id: 's_' + Date.now(),
+      time,
+      label
+    });
+    timetableData.push(DAYS.map(() => ({ type: 'other', text: '🛋️ Tự do' })));
+  }
+
+  renderTimetable();
+  closeCustomModal('modal-slot');
+}
+
+function deleteSlot(idx) {
+  if (timeSlots.length <= 1) {
+    alert('Phải giữ lại ít nhất 1 khung giờ trong bảng!');
+    return;
+  }
+  if (confirm(`Bạn có chắc muốn xóa khung giờ "${timeSlots[idx].time}" không?`)) {
+    timeSlots.splice(idx, 1);
+    timetableData.splice(idx, 1);
+    renderTimetable();
+  }
+}
+
+function resetDefaultSlots() {
+  if (confirm('Khôi phục danh sách khung giờ về mặc định ban đầu?')) {
+    timeSlots = JSON.parse(JSON.stringify(DEFAULT_TIME_SLOTS));
+    initTimetable();
+    loadSampleSchedule('student');
+  }
+}
+
+/* =====================================================================
+   CELL DETAIL EDITOR MODAL
+===================================================================== */
+function openEditCellModal(rIdx, cIdx, event) {
+  if (event) event.stopPropagation();
+  const slot = timeSlots[rIdx];
+  const day = DAYS[cIdx];
+  const item = timetableData[rIdx][cIdx];
+
+  document.getElementById('cell-edit-r').value = String(rIdx);
+  document.getElementById('cell-edit-c').value = String(cIdx);
+  document.getElementById('cell-modal-pos').textContent = `${day.name} | ${slot.time} (${slot.label})`;
+  document.getElementById('cell-text-input').value = item.text;
+  document.getElementById('cell-type-select').value = item.type;
+
+  openCustomModal('modal-cell');
+}
+
+function saveCellDetail() {
+  const rIdx = parseInt(document.getElementById('cell-edit-r').value, 10);
+  const cIdx = parseInt(document.getElementById('cell-edit-c').value, 10);
+  const text = document.getElementById('cell-text-input').value.trim();
+  const type = document.getElementById('cell-type-select').value;
+
+  if (!text) {
+    alert('Vui lòng nhập nội dung hoạt động!');
+    return;
+  }
+
+  timetableData[rIdx][cIdx] = { text, type };
+  renderTimetable();
+  closeCustomModal('modal-cell');
+}
+
+/* =====================================================================
+   MODAL UTILITIES
+===================================================================== */
+function openCustomModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('show');
+}
+
+function closeCustomModal(id, event) {
+  if (!event || event.target === document.getElementById(id)) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  }
+}
+
+/* =====================================================================
+   SAMPLE PRESETS
+===================================================================== */
 function clearWeeklyTable() {
   if (confirm('Bạn có chắc muốn xóa toàn bộ hoạt động trong bảng không?')) {
     initTimetable();
@@ -106,39 +289,37 @@ function clearWeeklyTable() {
 
 function loadSampleSchedule(type) {
   initTimetable();
-  
+
   if (type === 'student') {
-    // Student with late sleeping & intense study
     for (let c = 0; c < 7; c++) {
       const isWeekend = c >= 5;
-      timetableData[0][c] = { type: 'sleep', text: isWeekend ? '😴 Ngủ nướng' : '😴 Ngủ cố' };
-      timetableData[1][c] = { type: 'meal', text: isWeekend ? '😴 Ngủ' : '🥪 Ăn sáng vội' };
-      timetableData[2][c] = { type: 'work', text: isWeekend ? '📱 Lướt mạng' : '📘 Học trên lớp' };
-      timetableData[3][c] = { type: 'meal', text: '🍱 Ăn trưa muộn' };
-      timetableData[4][c] = { type: 'work', text: isWeekend ? '🎮 Chơi game' : '📘 Học ca chiều' };
-      timetableData[5][c] = { type: isWeekend ? 'sport' : 'other', text: isWeekend ? '🏃 Đá bóng' : '📱 Lướt TikTok' };
-      timetableData[6][c] = { type: 'meal', text: '🍱 Ăn tối' };
-      timetableData[7][c] = { type: 'work', text: '📘 Tự học / Làm bài' };
-      timetableData[8][c] = { type: 'screen', text: '📱 Cày phim / Game' };
-      timetableData[9][c] = { type: 'sleep', text: '😴 Ngủ (1h sáng)' };
+      if (timetableData[0]) timetableData[0][c] = { type: 'sleep', text: isWeekend ? '😴 Ngủ nướng' : '😴 Ngủ cố' };
+      if (timetableData[1]) timetableData[1][c] = { type: 'meal', text: isWeekend ? '😴 Ngủ' : '🥪 Ăn sáng vội' };
+      if (timetableData[2]) timetableData[2][c] = { type: 'work', text: isWeekend ? '📱 Lướt mạng' : '📘 Học trên lớp' };
+      if (timetableData[3]) timetableData[3][c] = { type: 'meal', text: '🍱 Ăn trưa muộn' };
+      if (timetableData[4]) timetableData[4][c] = { type: 'work', text: isWeekend ? '🎮 Chơi game' : '📘 Học ca chiều' };
+      if (timetableData[5]) timetableData[5][c] = { type: isWeekend ? 'sport' : 'other', text: isWeekend ? '🏃 Đá bóng' : '📱 Lướt TikTok' };
+      if (timetableData[6]) timetableData[6][c] = { type: 'meal', text: '🍱 Ăn tối' };
+      if (timetableData[7]) timetableData[7][c] = { type: 'work', text: '📘 Tự học / Làm bài' };
+      if (timetableData[8]) timetableData[8][c] = { type: 'screen', text: '📱 Cày phim / Game' };
+      if (timetableData[9]) timetableData[9][c] = { type: 'sleep', text: '😴 Ngủ (1h sáng)' };
     }
   } else if (type === 'office') {
-    // Office worker sitting 8-10h
     for (let c = 0; c < 7; c++) {
       const isWeekend = c >= 5;
-      timetableData[0][c] = { type: isWeekend ? 'sleep' : 'bath', text: isWeekend ? '😴 Ngủ nướng' : '🚿 Thức dậy & Cafe' };
-      timetableData[1][c] = { type: 'work', text: isWeekend ? '🍱 Ăn sáng' : '🚗 Di chuyển đi làm' };
-      timetableData[2][c] = { type: isWeekend ? 'other' : 'work', text: isWeekend ? '☕ Cafe bạn bè' : '📘 Ngồi máy tính' };
-      timetableData[3][c] = { type: 'meal', text: '🍱 Cơm văn phòng' };
-      timetableData[4][c] = { type: isWeekend ? 'other' : 'work', text: isWeekend ? '🛋️ Nghỉ ngơi' : '📘 Họp & Làm việc' };
-      timetableData[5][c] = { type: isWeekend ? 'sport' : 'bath', text: isWeekend ? '🏃 Gym' : '🚿 Tắc đường & Tắm' };
-      timetableData[6][c] = { type: 'meal', text: '🍱 Ăn tối' };
-      timetableData[7][c] = { type: isWeekend ? 'screen' : 'work', text: isWeekend ? '📱 Xem Netflix' : '📘 Check mail làm thêm' };
-      timetableData[8][c] = { type: 'screen', text: '📱 Dùng điện thoại' };
-      timetableData[9][c] = { type: 'sleep', text: '😴 Ngủ đêm' };
+      if (timetableData[0]) timetableData[0][c] = { type: isWeekend ? 'sleep' : 'bath', text: isWeekend ? '😴 Ngủ nướng' : '🚿 Thức dậy & Cafe' };
+      if (timetableData[1]) timetableData[1][c] = { type: 'work', text: isWeekend ? '🍱 Ăn sáng' : '🚗 Di chuyển đi làm' };
+      if (timetableData[2]) timetableData[2][c] = { type: isWeekend ? 'other' : 'work', text: isWeekend ? '☕ Cafe bạn bè' : '📘 Ngồi máy tính' };
+      if (timetableData[3]) timetableData[3][c] = { type: 'meal', text: '🍱 Cơm văn phòng' };
+      if (timetableData[4]) timetableData[4][c] = { type: isWeekend ? 'other' : 'work', text: isWeekend ? '🛋️ Nghỉ ngơi' : '📘 Họp & Làm việc' };
+      if (timetableData[5]) timetableData[5][c] = { type: isWeekend ? 'sport' : 'bath', text: isWeekend ? '🏃 Gym' : '🚿 Tắc đường & Tắm' };
+      if (timetableData[6]) timetableData[6][c] = { type: 'meal', text: '🍱 Ăn tối' };
+      if (timetableData[7]) timetableData[7][c] = { type: isWeekend ? 'screen' : 'work', text: isWeekend ? '📱 Xem Netflix' : '📘 Check mail làm thêm' };
+      if (timetableData[8]) timetableData[8][c] = { type: 'screen', text: '📱 Dùng điện thoại' };
+      if (timetableData[9]) timetableData[9][c] = { type: 'sleep', text: '😴 Ngủ đêm' };
     }
   }
-  
+
   renderTimetable();
 }
 
@@ -187,7 +368,7 @@ function applyPreset() {
 
 /* =====================================================================
    TAB SWITCHER
-==================================================================== */
+===================================================================== */
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -204,8 +385,8 @@ function buildWeeklyPrompt(scheduleMatrix, waterIntake, stressLevel) {
   let scheduleText = '';
   DAYS.forEach((day, dIdx) => {
     scheduleText += `\n--- [${day.name}] ---\n`;
-    TIME_SLOTS.forEach((slot, sIdx) => {
-      const item = scheduleMatrix[sIdx][dIdx];
+    timeSlots.forEach((slot, sIdx) => {
+      const item = (scheduleMatrix[sIdx] && scheduleMatrix[sIdx][dIdx]) || { text: 'Tự do', type: 'other' };
       scheduleText += `${slot.time} (${slot.label}): ${item.text} [Loại: ${item.type}]\n`;
     });
   });
@@ -590,17 +771,16 @@ function resetFocus() {
 /* =====================================================================
    INIT
 ===================================================================== */
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
+  renderPalette();
   initTimetable();
   loadSampleSchedule('student');
   applyPreset();
   updateTimerUI();
-});
+}
 
-// Run directly in case DOM already loaded
+document.addEventListener('DOMContentLoaded', initApp);
+
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  initTimetable();
-  loadSampleSchedule('student');
-  applyPreset();
-  updateTimerUI();
+  initApp();
 }
