@@ -1,8 +1,12 @@
-"""Windows Device Controller stub.
+"""Windows Device Controller stub (LEGACY).
 
-Phase 1: Real Windows device control (restricted mode, lock) is not yet
-implemented. This stub documents the contract and raises
-NotImplementedError if used.
+[LEGACY] Phase 1 stub — real Windows device control (restricted mode, lock)
+is not yet implemented.
+
+Only :meth:`get_capabilities` returns data (all capabilities ``False``
+except process monitoring); the rest raise :class:`NotImplementedError`
+so accidental use fails fast.  When real Windows device control is
+implemented the ``*monitoring`` flags here should flip to ``True``.
 """
 
 from __future__ import annotations

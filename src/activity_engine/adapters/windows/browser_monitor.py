@@ -1,7 +1,15 @@
-"""Windows browser monitor stub.
+"""Windows browser monitor stub (LEGACY).
 
-Phase 1: Browser extension integration is not yet implemented. This stub
-documents the contract and raises NotImplementedError if used.
+[LEGACY] Phase 1 stub — browser extension integration is not yet implemented.
+
+This stub documents the :class:`~activity_engine.ports.BrowserMonitor` contract
+and raises :class:`NotImplementedError` on every method so that any accidental
+use fails fast rather than silently doing nothing.
+
+The canonical / tested path for browser telemetry is
+:class:`~activity_engine.adapters.extension.browser_monitor.ExtensionBrowserMonitor`
+(Chrome extension bridge), or :class:`~activity_engine.adapters.mock.browser_monitor.MockBrowserMonitor`
+for simulation.
 """
 
 from __future__ import annotations

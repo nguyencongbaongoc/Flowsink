@@ -1,135 +1,198 @@
-graph TD
-    classDef active fill:#d4edda,stroke:#28a745,stroke-width:2px;
-    classDef legacy fill:#ffeeba,stroke:#ffc107,stroke-width:2px;
-    classDef orphan fill:#f8d7da,stroke:#dc3545,stroke-width:2px;
-    classDef broken fill:#f5c6cb,stroke:#c82333,stroke-width:2px;
-    classDef demo fill:#e2e3e5,stroke:#6c757d,stroke-width:1px;
+%% Flowsink Activity Engine — System Dependency Graph (PHASE 11, updated)
+%% Generated after PHASE 0-4 fixes + orphan audit.
+%% Canonical components (never rewritten): logging/, adapters/mock/action_executor.py,
+%% platform/screen.py, engine/facade.py, policy/ (default_policies.yaml),
+%% adapters/extension/browser_monitor.py, server.py
 
-    subgraph ENTRYPOINTS
-        E1["__main__.py"]
-        E2["cli/__main__.py"]
-        E3["console script activity-engine"]
-        E4["run_windows.bat"]
-        E5["uvicorn server:app"]
-        E6["browser-extension/background.js"]
-        E7["examples/simulate.py"]
-    end
+%% ============================ PORTS & CORE ============================
+class core.events.ActivityEvent,core.events.EventSource,core.events.EventType,core.events.ApplicationInfo,core.events.BrowserInfo,core.events.NetworkInfo;
+class core.actions.ActionType,core.actions.ActionStatus,core.actions.ActionRequest,core.actions.ActionResult,core.actions.WarningRequest,core.actions.RedirectRequest,core.actions.CloseApplicationRequest,core.actions.BlockDomainRequest,core.actions.RestrictedModeRequest,core.actions.EnableRestrictedModeRequest,core.actions.DisableRestrictedModeRequest;
+class core.states.ActivityState,core.states.ActivityStateMachine,core.states.StateSnapshot,core.states.InvalidStateTransition;
+class core.decisions.EnforcementMode,core.decisions.PolicyDecision,core.decisions.PolicyOutcome;
+class core.policies.PolicyDocument,core.policies.FocusPolicy,core.policies.EscalationPolicy,core.policies.BedtimePolicy,core.policies.EnforcementLevel,core.policies.ActionMode,core.policies.BedtimeStage;
+class core.errors.ActivityEngineError,core.errors.ConfigurationError,core.errors.EventValidationError,core.errors.PolicyEvaluationError,core.errors.ActionExecutionError,core.errors.MonitorError;
 
-    subgraph CORE
-        FACADE["engine/facade.py<br/>ActivityEngine"]
-        EVENT["engine/event_engine.py"]
-        POLICY["engine/policy_engine.py"]
-        EVAL["policy/evaluator.py"]
-        CLASS["policy/classifier.py"]
-        ACTION["engine/action_engine.py"]
-        ESCAL["engine/escalation_engine.py"]
-        STATE["engine/state_engine.py"]
-        REPO["persistence/repository.py"]
-        SHOT["services/screenshot_service.py"]
-        CONF["config/loader.py"]
-        PLOA["policy/loader.py"]
-        SCREEN["platform/screen.py"]
-        WINSCREEN["platform/windows_screen.py"]
-        MOCKSCREEN["platform/mock_screen.py"]
-        MOCKEXEC["adapters/mock/action_executor.py"]
-    end
+%% ============================ DOMAIN ============================
+class domain.activity.CurrentActivity;
+class domain.device.Device,domain.device.DeviceCapabilities;
+class domain.session.MonitoringSession;
+class domain.student.Student;
+class domain.violations.ViolationRecord;
 
-    subgraph SERVER_RESOURCES
-        BSTATE["services/browser_state.py"]
-        BEVENTS["services/browser_events.py"]
-        TDTO["transport/dto.py"]
-        TPROTO["transport/protocol.py"]
-        TSER["transport/serialization.py"]
-        UIDS["utils/ids.py"]
-    end
+%% ============================ ENGINES ============================
+class engine.event_engine.EventEngine;
+class engine.policy_engine.PolicyEngine;
+class engine.state_engine.StateEngine;
+class engine.action_engine.ActionEngine;
+class engine.escalation_engine.EscalationEngine;
+class engine.facade.ActivityEngine;  %% CANONICAL FACADE
 
-    subgraph ADAPTERS_LIVE
-        MOCKPROC["adapters/mock/process_monitor.py"]
-        MOCKBROW["adapters/mock/browser_monitor.py"]
-        MOCKNET["adapters/mock/network_monitor.py"]
-        EXTBROW["adapters/extension/browser_monitor.py"]
-        WINPROC["adapters/windows/process_monitor.py"]
-        WINNET["adapters/windows/network_monitor.py"]
-        WINDEV["adapters/windows/device_controller.py"]
-    end
+%% ============================ ADAPTERS ============================
+class adapters.mock.process_monitor.MockProcessMonitor;
+class adapters.mock.browser_monitor.MockBrowserMonitor;
+class adapters.mock.network_monitor.MockNetworkMonitor;
+class adapters.mock.action_executor.MockActionExecutor;  %% CANONICAL
+class adapters.extension.browser_monitor.ExtensionBrowserMonitor;  %% CANONICAL
+class adapters.windows.process_monitor.WindowsProcessMonitor;
+class adapters.windows.browser_monitor.WindowsBrowserMonitor;  %% LEGACY STUB
+class adapters.windows.network_monitor.WindowsNetworkMonitor;
+class adapters.windows.action_executor.WindowsActionExecutor;  %% LEGACY STUB
+class adapters.windows.device_controller.WindowsDeviceController;  %% LEGACY STUB
 
-    subgraph ORPHANS
-        ACTIVITY["services/activity_service.py"]
-        BEDTIME["services/bedtime_service.py"]
-        FOCUS["services/focus_service.py"]
-        UTILLOG["utils/logging.py"]
-        WINBROW["adapters/windows/browser_monitor.py"]
-        WINACTION["adapters/windows/action_executor.py"]
-    end
+%% ============================ SERVICES ============================
+class services.monitoring_service.MonitoringService;  %% ACTIVE
+class services.screenshot_service.ScreenshotService;  %% ACTIVE
+class services.browser_state.BrowserStateStore;  %% ACTIVE
+class services.browser_events.normalize_extension_event;  %% ACTIVE
+class services.activity_service.ActivityService;  %% ORPHAN (dead code)
+class services.bedtime_service.BedtimeService;  %% ORPHAN (dead code)
+class services.focus_service.FocusService;  %% ORPHAN (dead code, dup of facade)
 
-    subgraph PHANTOM_FRONTEND
-        INDEX["index.html"]
-        VITE["vite.config.js"]
-        PKG["package.json"]
-        ASSETS["src/assets/* (hero.png, react.svg, vite.svg)"]
-    end
+%% ============================ OTHER ============================
+class config.models.Config,config.models.DeviceConfig,config.models.RuntimeConfig,config.models.MonitoringConfig,config.models.LoggingConfig;
+class config.loader.ConfigLoader,config.loader.load_dev_config,config.loader.resolve_device_id;
+class policy.loader.PolicyLoader,policy.loader.load_default_policy;  %% CANONICAL
+class policy.classifier.normalize_domain,policy.classifier.domain_matches,policy.classifier.app_matches;
+class policy.evaluator.PolicyEvaluator;  %% CANONICAL
+class transport.dto.WireMessage,transport.dto.MessageType,transport.dto.HelloMessage,transport.dto.EventMessage,transport.dto.StateMessage,transport.dto.DecisionMessage,transport.dto.ActionMessage,transport.dto.ErrorMessage;
+class transport.protocol.build_message,transport.protocol.event_message,transport.protocol.state_message;
+class transport.serialization.to_jsonable,transport.serialization.dumps,transport.serialization.loads;
+class persistence.repository.ActivityRepository,domain.repository.InMemoryActivityRepository;
+class platform.screen.ScreenProvider,platform.screen.ScreenInfo,platform.screen.create_screen_provider,platform.screen.get_screen_provider,platform.screen.default_screenshot_dir;
+class platform.mock_screen.MockScreenProvider;
+class platform.windows_screen.WindowsScreenProvider;
+class logging.logger.get_logger,logging.logger.configure_logging,logging.logger.set_log_context;
+class logging.sanitize.sanitize_message,sanitize_dict,sanitize_url;
+class logging.context.log_context;
+class utils.ids.short_id,utils.ids.new_id;
+class cli.main.main,cli.main._build_monitor_set,cli.main._cmd_doctor,cli.main._cmd_monitor,cli.main._cmd_simulate,cli.main._cmd_policy_check;
 
-    subgraph MISSING
-        POLICYFILE{{"config/policy.yaml (MISSING)"}}
-        LOCALYAML{{"config/local.yaml (MISSING)"}}
-        ENTRY{{"React src/main.* (MISSING)"}}
-    end
+%% ============================ SERVER ============================
+class server.app;  %% FASTAPI; optional dependency
 
-    E1 --> E2
-    E2 --> FACADE
-    E3 --> FACADE
-    E4 --> E2
-    E5 --> FACADE
-    E5 --> SERVER_RESOURCES
-    E6 --> E5
-    E7 --> FACADE
+%% ============================ IMPORT EDGES ============================
 
-    FACADE --> CONF
-    FACADE --> PLOA
-    FACADE --> EVENT
-    FACADE --> POLICY
-    FACADE --> STATE
-    FACADE --> ACTION
-    FACADE --> ESCAL
-    FACADE --> REPO
-    FACADE --> SHOT
-    FACADE --> UIDS
+%% Core is standalone (no deps on engines/services)
+core.errors --|> core.policies : defines
+core.errors --|> core.decisions : defines
+core.errors --|> core.actions : defines
+core.errors --|> core.events : defines
+core.errors --|> core.states : defines
 
-    POLICY --> EVAL
-    EVAL --> CLASS
-    SHOT --> SCREEN
-    SCREEN --> WINSCREEN
-    SCREEN --> MOCKSCREEN
-    ACTION --> MOCKEXEC
+core.policies --|> core.actions : uses ActionType (indirect)
+core.decisions --|> core.actions : references ActionType
+core.states --|> core.events : (standalone)
+core.events --|> core.states : references ActivityState
 
-    BSTATE --> BEVENTS
-    E5 --> BSTATE
-    E5 --> TDTO
-    E5 --> TPROTO
-    E5 --> TSER
+%% Domain depends on core
+domain.activity --|> core.events : uses ApplicationInfo, BrowserInfo
+domain.violations --|> core.actions : uses ActionType
+domain.violations --|> core.states : uses ActivityState
+domain.session --|> domain.student : references (no, standalone)
+domain.device --|> core.states : DeviceCapabilities standalone
 
-    E2 --> MOCKPROC
-    E2 --> MOCKBROW
-    E2 --> MOCKNET
-    E2 --> EXTBROW
-    E2 --> WINPROC
-    E2 --> WINNET
-    E2 --> WINDEV
+%% Engines depend on core + domain
+engine.event_engine --|> core.events : normalizes to ActivityEvent
+engine.event_engine --|> core.errors : ErrorValidation
+engine.policy_engine --|> core.decisions : PolicyDecision
+engine.policy_engine --|> core.policies : PolicyDocument
+engine.policy_engine --|> core.events : ActivityEvent
+engine.policy_engine --|> domain.violations : ViolationRecord
+engine.policy_engine --|> core.states : ActivityState
+engine.policy_engine --|> policy.evaluator : PolicyEvaluator
+engine.state_engine --|> core.decisions : PolicyDecision
+engine.state_engine --|> core.states : StateSnapshot, ActivityStateMachine
+engine.state_engine --|> domain.session : MonitoringSession
+engine.action_engine --|> core.actions : ActionRequest, ActionResult, ActionType
+engine.action_engine --|> core.decisions : EnforcementMode
+engine.escalation_engine --|> core.actions : builds ActionRequest
+engine.escalation_engine --|> core.decisions : PolicyDecision
+engine.facade --|> engine.event_engine : owns
+engine.facade --|> engine.state_engine : owns
+engine.facade --|> engine.policy_engine : owns
+engine.facade --|> engine.action_engine : owns
+engine.facade --|> engine.escalation_engine : owns
+engine.facade --|> config.models : Config
+engine.facade --|> config.loader : load_dev_config, resolve_device_id
+engine.facade --|> policy.loader : PolicyLoader, load_default_policy  %% CANONICAL POLICY SOURCE
+engine.facade --|> persistence.repository : InMemoryActivityRepository
+engine.facade --|> services.screenshot_service : ScreenshotService
+engine.facade --|> core.policies : PolicyDocument
+engine.facade --|> core.states : StateSnapshot
+engine.facade --|> core.events : ActivityEvent
+engine.facade --|> domain.violations : ViolationRecord
 
-    CONF -.-> LOCALYAML
-    E2 --> POLICYFILE
-    VITE --> ENTRY
-    INDEX --> VITE
-    PKG --> VITE
-    ASSETS -. note "no runtime consumer" .- INDEX
+%% Adapters depend on ports + core
+adapters.mock.action_executor --|> core.actions : ActionResult, ActionStatus, ActionType
+adapters.mock.process_monitor --|> core.events : (no direct)
+adapters.mock.browser_monitor --|> core.events : (no direct)
+adapters.mock.network_monitor --|> core.events : (no direct)
 
-    class E1,E2,E3,E4,E5,E6,E7 active;
-    class FACADE,EVENT,POLICY,EVAL,CLASS,ACTION,ESCAL,STATE,REPO,SHOT,CONF,PLOA,SCREEN,WINSCREEN,MOCKSCREEN,MOCKEXEC active;
-    class BSTATE,BEVENTS,TDTO,TPROTO,TSER,UIDS active;
-    class MOCKPROC,MOCKBROW,MOCKNET,EXTBROW,WINPROC,WINNET,WINDEV active;
-    class ACTIVITY,BEDTIME,FOCUS orphan;
-    class UTILLOG legacy;
-    class WINBROW orphan;
-    class WINACTION orphan;
-    class INDEX,VITE,PKG,ASSETS orphan;
-    class POLICYFILE,LOCALYAML,ENTRY broken;
+adapters.extension.browser_monitor --|> services.browser_state : BrowserStateStore
+adapters.extension.browser_monitor --|> services.browser_events : normalize_extension_event (via browser_state)
+
+adapters.windows.action_executor --|> core.actions : (stub, raises NotImplementedError)
+adapters.windows.browser_monitor --|> core.events : (stub, raises NotImplementedError)
+adapters.windows.process_monitor --|> core.events : (real psutil impl)
+adapters.windows.network_monitor --|> core.events : (real psutil impl)
+adapters.windows.device_controller --|> domain.device : DeviceCapabilities
+
+%% Services
+services.monitoring_service --|> engine.event_engine : EventEngine (subscribes)
+services.monitoring_service --|> core.errors : MonitorError
+services.screenshot_service --|> platform.screen : get_screen_provider, default_screenshot_dir
+services.screenshot_service --|> core.decisions : PolicyDecision, PolicyOutcome
+services.screenshot_service --|> core.events : ActivityEvent
+services.browser_state --|> services.browser_events : normalize_extension_event
+services.activity_service --|> engine.state_engine : StateEngine (ORPHAN)
+services.activity_service --|> domain.activity : CurrentActivity (ORPHAN)
+services.bedtime_service --|> engine.action_engine : ActionEngine (ORPHAN)
+services.bedtime_service --|> engine.state_engine : StateEngine (ORPHAN)
+services.bedtime_service --|> core.policies : BedtimePolicy (ORPHAN)
+services.bedtime_service --|> core.actions : ActionRequest (ORPHAN)
+services.focus_service --|> engine.event_engine : EventEngine (ORPHAN, DUPLICATE)
+services.focus_service --|> engine.policy_engine : PolicyEngine (ORPHAN, DUPLICATE)
+services.focus_service --|> engine.state_engine : StateEngine (ORPHAN, DUPLICATE)
+services.focus_service --|> engine.action_engine : ActionEngine (ORPHAN, DUPLICATE)
+services.focus_service --|> engine.escalation_engine : EscalationEngine (ORPHAN, DUPLICATE)
+
+%% Config / Policy
+config.loader --|> config.models : Config
+config.loader --|> core.errors : ConfigurationError
+policy.loader --|> core.policies : PolicyDocument
+policy.loader --|> core.errors : ConfigurationError
+policy.loader --|> policy.evaluator : (none, standalone)
+policy.evaluator --|> core.policies : PolicyDocument, EnforcementLevel
+policy.evaluator --|> core.decisions : PolicyDecision, PolicyOutcome
+policy.evaluator --|> core.events : ActivityEvent, EventType, EventSource
+policy.evaluator --|> policy.classifier : domain_matches, app_matches, normalize_domain
+
+%% Transport
+transport.protocol --|> transport.dto : WireMessage, MessageType
+transport.protocol --|> transport.serialization : to_jsonable
+transport.serialization --|> core.states : StateSnapshot
+transport.serialization --|> core.events : ActivityEvent
+transport.serialization --|> core.decisions : PolicyDecision
+transport.serialization --|> core.actions : ActionResult
+
+%% Server (optional, depends on fastapi/uvicorn)
+server --|> engine.facade : ActivityEngine
+server --|> services.browser_state : BrowserStateStore
+server --|> transport.dto : BrowserTelemetryPayload, MessageType, WireMessage
+server --|> transport.protocol : build_message, event_message, state_message, error_message
+server --|> utils.ids : short_id
+server --|> logging : get_logger, set_log_context
+server --|> platform.screen : get_screen_provider, default_screenshot_dir
+
+%% CLI
+cli.main --|> engine.facade : ActivityEngine
+cli.main --|> config.models : Config, RuntimeConfig
+cli.main --|> adapters.mock.action_executor : MockActionExecutor
+cli.main --|> services.monitoring_service : MonitoringService
+cli.main --|> cli.main._build_monitor_set : picks adapters
+cli.main._build_monitor_set --|> adapters.extension.browser_monitor : ExtensionBrowserMonitor
+cli.main._build_monitor_set --|> adapters.mock.process_monitor : MockProcessMonitor
+cli.main._build_monitor_set --|> adapters.mock.browser_monitor : MockBrowserMonitor
+cli.main._build_monitor_set --|> adapters.mock.network_monitor : MockNetworkMonitor
+cli.main._build_monitor_set --|> adapters.windows.process_monitor : WindowsProcessMonitor
+cli.main._build_monitor_set --|> adapters.windows.network_monitor : WindowsNetworkMonitor

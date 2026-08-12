@@ -1,113 +1,75 @@
-# Policy Configuration for Activity Engine
-# Copy this file to policy.yaml and adjust rules as needed
-# This file defines which activities trigger warnings or actions
+# Flowsink Activity Engine — Policy Document
+# Copy this file to policy.yaml and adjust the rules as needed.
+#
+# Canonical schema (validated by PolicyDocument / core.policies):
+#   version    -> str
+#   focus      -> FocusPolicy  (allowed/blocked domains & apps, url patterns, escalation)
+#   escalation -> EscalationPolicy (three-level escalation delays & threshold)
+#   bedtime    -> BedtimePolicy (schedule + staged warnings)
+#
+# See docs/POLICY_ENGINE.md for full syntax. Any unknown top-level key is
+# ignored on load, so prefer the keys below to avoid silently empty rules.
 
-# Default blocking rules (categories of websites to block)
-defaults:
-  enforcement_mode: "block"  # Options: "block", "warn", "monitor"
+version: "1"
 
-# Domain categories and rules
-categories:
-  # Social Media - Block during focus time
-  social_media:
-    action: "block"
-    domains:
-      - "facebook.com"
-      - "instagram.com"
-      - "twitter.com"
-      - "tiktok.com"
-      - "snapchat.com"
-    schedule:
-      start: "08:00"
-      end: "22:00"
-      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+focus:
+  enabled: true
+  # Domains always allowed even during focus time.
+  allowed_domains:
+    - classroom.google.com
+    - docs.google.com
+    - wikipedia.org
+    - "*.google.com"
+  # Domains blocked while focus is active.
+  blocked_domains:
+    - facebook.com
+    - tiktok.com
+    - youtube.com
+    - instagram.com
+    - discord.com
+    - twitch.tv
+    - netflix.com
+  # Desktop apps always allowed.
+  allowed_apps:
+    - Chrome
+    - "Microsoft Edge"
+    - Firefox
+    - Code
+    - "Visual Studio Code"
+    - word
+    - excel
+    - powerpoint
+  # Apps blocked during focus time.
+  blocked_apps:
+    - Discord
+    - Steam
+    - Spotify
+    - Valorant
+    - "League of Legends"
+    - Roblox
+    - Minecraft
+  # Extra URL patterns allowed (regex-ish globs).
+  allowed_url_patterns: []
+  # Seconds to wait before escalating a focus violation.
+  escalation_delay_seconds: 10
+  # Consecutive violations before an action is taken.
+  violation_threshold: 3
 
-  # Gaming - Block during study hours
-  gaming:
-    action: "block"
-    domains:
-      - "steam.com"
-      - "epicgames.com"
-      - "twitch.tv"
-      - "discord.com"
-    schedule:
-      start: "08:00"
-      end: "18:00"
-      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+escalation:
+  level_1_delay_seconds: 10
+  level_2_delay_seconds: 30
+  level_3_violation_threshold: 3
 
-  # Entertainment - Warn during focus time
-  entertainment:
-    action: "warn"
-    domains:
-      - "youtube.com"
-      - "netflix.com"
-      - "spotify.com"
-    schedule:
-      start: "08:00"
-      end: "18:00"
-      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
-
-  # Educational - Always allowed
-  educational:
-    action: "allow"
-    domains:
-      - "classroom.google.com"
-      - "docs.google.com"
-      - "khanacademy.org"
-      - "coursera.org"
-      - "udemy.com"
-    schedule: null  # Always active
-
-# Application rules (for Windows platform)
-applications:
-  # Blocked applications during study time
-  blocked:
-    - name: "steam.exe"
-      action: "block"
-    - name: "Discord.exe"
-      action: "block"
-    - name: "Spotify.exe"
-      action: "warn"
-
-  # Allowed applications
-  allowed:
-    - name: "chrome.exe"
-      action: "monitor"
-    - name: "notepad.exe"
-      action: "allow"
-    - name: "word.exe"
-      action: "allow"
-
-# Focus Mode Settings
-focus_mode:
-  # Duration in minutes
-  work_duration: 45
-  break_duration: 5
-  
-  # Screenshot settings during focus
-  screenshot:
-    enabled: true
-    interval_seconds: 300  # 5 minutes
-    random_offset: 60      # Random offset up to 60 seconds
-  
-  # Escalation settings
-  escalation:
-    warning_threshold: 3   # Warnings before escalation
-    escalation_timeout: 60 # Seconds before parent notification
-
-# Notification settings
-notifications:
-  warning:
-    sound: true
-    visual: true
-  blocked:
-    sound: true
-    visual: true
-    log: true
-
-# Logging settings
-logging:
-  level: "INFO"
-  include_domains: true
-  include_applications: true
-  include_screenshots: false  # Privacy consideration
+bedtime:
+  enabled: false
+  start_time: "22:30"
+  level_1_warning_minutes: 15
+  level_2_warning_minutes: 5
+  level_3_action: restricted_mode  # restricted_mode | shutdown | lock</arg_value>
+<task_progress>
+- [x] PHASE 0-3 fixes committed; PHASE 12 tests pass; PHASE 13 compile passes
+- [~] PHASE 4: Config schema alignment (fixing example files now)
+- [ ] PHASE 5-11 remaining
+- [ ] PHASE 14-16 final
+</task_progress>
+</write_to_file></tool_call>

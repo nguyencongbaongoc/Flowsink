@@ -1,33 +1,32 @@
-# Local Configuration for Activity Engine
-# Copy this file to local.yaml and adjust values as needed
+# Flowsink Activity Engine — Local Configuration (optional override)
+# Copy this file to config/local.yaml and adjust as needed.
+#
+# Canonical schema = activity_engine.config.models.Config:
+#   device     -> id
+#   runtime    -> mode  (dry_run | audit_only | enforce)
+#   monitoring -> process/browser/network toggles
+#   logging    -> level (TRACE/DEBUG/INFO/WARNING/ERROR/CRITICAL), structured
+#
+# NOTE: config/local.yaml is optional. If absent the engine uses bundled
+#      defaults from Config(). The server host/port used by the FastAPI
+#      backend are configured in run_windows.bat / uvicorn invocation,
+#      not here.
 
-# Device Identification
+# Device identification
 device:
-  id: "device-001"
-  name: "Student Laptop"
+  id: "auto"   # "auto" resolves to the machine hostname (COMPUTERNAME/HOSTNAME)
 
-# Runtime Configuration
+# Runtime behavior
 runtime:
-  mode: "enforcement"  # Options: "enforcement", "dry_run", "off"
-  
-# Logging Configuration
-logging:
-  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
-  format: "json"  # Options: json, text
-  
-# Monitoring Settings
+  mode: "dry_run"  # dry_run | audit_only | enforce
+
+# Which monitors to enable
 monitoring:
-  poll_interval_seconds: 5
-  screenshot_enabled: true
-  screenshot_interval_seconds: 60
-  
-# Policy Configuration
-policy:
-  default_policy: "policy/default_policies.yaml"
-  custom_policy: null  # Path to custom policy if any
-  
-# Server Configuration (if running server)
-server:
-  host: "127.0.0.1"
-  port: 8000
-  cors_origins: ["*"]
+  process: true
+  browser: true
+  network: true
+
+# Logging
+logging:
+  level: "INFO"   # TRACE | DEBUG | INFO | WARNING | ERROR | CRITICAL
+  structured: true

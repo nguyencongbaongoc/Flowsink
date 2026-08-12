@@ -1,8 +1,14 @@
-"""Windows Action Executor stub.
+"""Windows Action Executor stub (LEGACY).
 
-Phase 1: Real Windows action execution (Win32 API app close, registry blocks)
-is not yet implemented. This stub documents the contract and raises
-NotImplementedError if used.
+[LEGACY] Phase 1 stub — real Windows action execution (Win32 API app close,
+registry blocks, restricted-mode toggles) is not yet implemented.
+
+This stub documents the :class:`~activity_engine.ports.ActionExecutor` contract
+and raises :class:`NotImplementedError` on every method so that any accidental
+use fails fast rather than silently doing nothing.
+
+The canonical / tested path is :class:`~activity_engine.adapters.mock.action_executor.MockActionExecutor`,
+which is what the engine wires by default on every platform.
 """
 
 from __future__ import annotations

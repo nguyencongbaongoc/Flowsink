@@ -9,12 +9,13 @@ into a coherent pipeline:
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from ..config.loader import load_dev_config, resolve_device_id
 from ..config.models import Config, EnforcementMode
 from ..core.events import ActivityEvent
-from ..policy.loader import load_default_policy
+from ..policy.loader import PolicyLoader, load_default_policy
 from ..core.policies import PolicyDocument
 from ..core.states import StateSnapshot
 from ..domain.violations import ViolationRecord
@@ -55,10 +56,15 @@ class ActivityEngine:
         if policy is not None:
             self._policy = policy
         else:
-            # Canonical policy source is the bundled default_policies.yaml.
-            # Fail fast rather than silently degrading to an empty policy,
-            # which would disable all enforcement.
-            self._policy = load_default_policy()
+            # Canonical policy source: an explicit config/policy.yaml if present,
+            # otherwise the bundled default_policies.yaml. Fail fast rather than
+            # silently degrading to an empty policy, which would disable all
+            # enforcement.
+            policy_path = Path(self._config.policy_file)
+            if policy_path.exists():
+                self._policy = PolicyLoader(policy_path).load()
+            else:
+                self._policy = load_default_policy()
 
         self._executor = executor or self._default_executor()
         mode = self._config.runtime.mode if hasattr(self._config, "runtime") else EnforcementMode.DRY_RUN
