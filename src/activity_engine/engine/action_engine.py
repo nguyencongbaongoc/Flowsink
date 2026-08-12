@@ -24,6 +24,9 @@ from ..core.actions import (
     WarningRequest,
 )
 from ..core.decisions import EnforcementMode
+from ..logging import get_logger
+
+_logger = get_logger("activity_engine.action_engine", component="ACTION", event="EXECUTE")
 
 _DEFAULT_TIMEOUT_SECONDS = 10.0
 
@@ -54,8 +57,22 @@ class ActionEngine:
         idempotency_key = (request.action, request.target, request.student_id)
 
         if self._mode == EnforcementMode.DRY_RUN:
+            _logger.info(
+                "action=%s target=%s reason=dry_run",
+                request.action.value,
+                request.target,
+                event="NOT_EXECUTED",
+                component="ACTION",
+            )
             return self._not_executed(request, "dry_run")
         if self._mode == EnforcementMode.AUDIT_ONLY:
+            _logger.info(
+                "action=%s target=%s reason=audit_only",
+                request.action.value,
+                request.target,
+                event="NOT_EXECUTED",
+                component="ACTION",
+            )
             return self._not_executed(request, "audit_only")
 
         if idempotency_key in self._completed:
@@ -87,8 +104,24 @@ class ActionEngine:
                 self._restricted_mode_active = True
             elif request.action == ActionType.DISABLE_RESTRICTED_MODE:
                 self._restricted_mode_active = False
+            _logger.info(
+                "action=%s target=%s action_id=%s",
+                request.action.value,
+                request.target,
+                request.action_id,
+                event="SUCCESS",
+                component="ACTION",
+            )
         else:
             self.metrics["actions_failed"] += 1
+            _logger.warning(
+                "action=%s target=%s status=%s",
+                request.action.value,
+                request.target,
+                result.status.value,
+                event="FAILED",
+                component="ACTION",
+            )
         return result
 
     async def _dispatch(self, request: ActionRequest) -> ActionResult:

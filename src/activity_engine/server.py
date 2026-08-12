@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
@@ -29,6 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from .engine.facade import ActivityEngine
+from .logging import get_logger, set_log_context
 from .services.browser_state import BrowserStateStore
 from .transport.dto import MessageType, WireMessage
 from .transport.protocol import (
@@ -39,7 +39,7 @@ from .transport.protocol import (
 )
 from .utils.ids import short_id
 
-logger = logging.getLogger(__name__)
+logger = get_logger("activity_engine.server", component="API", event="REQUEST")
 
 # ---------------------------------------------------------------------------
 # Global engine & connection manager
@@ -64,11 +64,21 @@ class ConnectionManager:
     async def connect(self, ws: WebSocket) -> None:
         await ws.accept()
         self.active.append(ws)
-        logger.info("ws_connect clients=%d", len(self.active))
+        logger.info(
+            "clients=%d",
+            len(self.active),
+            event="CONNECTED",
+            component="WS",
+        )
 
     def disconnect(self, ws: WebSocket) -> None:
         self.active.remove(ws)
-        logger.info("ws_disconnect clients=%d", len(self.active))
+        logger.info(
+            "clients=%d",
+            len(self.active),
+            event="DISCONNECTED",
+            component="WS",
+        )
 
     async def broadcast(self, message: WireMessage) -> None:
         data = message.model_dump_json()
@@ -93,9 +103,17 @@ manager = ConnectionManager()
 async def lifespan(app: FastAPI):  # type: ignore[type-arg]
     global _engine
     _engine = ActivityEngine(student_id="student-001")
-    logger.info("activity_engine=initialized")
+    logger.info(
+        "activity_engine=initialized",
+        event="INIT",
+        component="SYSTEM",
+    )
     yield
-    logger.info("activity_engine=shutdown")
+    logger.info(
+        "activity_engine=shutdown",
+        event="SHUTDOWN",
+        component="SYSTEM",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -140,6 +158,13 @@ async def start_session(student_id: str = "student-001") -> dict[str, Any]:
         _engine = ActivityEngine(student_id=student_id)
 
     _session_id = _engine.start_session()
+    logger.info(
+        "session_id=%s student_id=%s",
+        _session_id,
+        student_id,
+        event="START",
+        component="SESSION",
+    )
 
     snapshot = _engine.current_state()
     if snapshot:
@@ -156,11 +181,22 @@ async def start_session(student_id: str = "student-001") -> dict[str, Any]:
 async def end_session() -> dict[str, Any]:
     global _session_id
     if _engine is None:
+        logger.warning(
+            "reason=no_active_engine",
+            event="END",
+            component="SESSION",
+        )
         return {"status": "no_active_engine"}
 
     _engine.end_session()
     ended_session = _session_id
     _session_id = None
+    logger.info(
+        "session_id=%s",
+        ended_session,
+        event="END",
+        component="SESSION",
+    )
 
     await manager.broadcast(
         build_message(MessageType.STATE, {"state": "UNKNOWN", "session_id": ended_session})
@@ -202,12 +238,24 @@ async def get_events(limit: int = 50) -> dict[str, Any]:
 async def feed_telemetry(raw: dict[str, Any]) -> dict[str, Any]:
     """Accept a raw telemetry event from the frontend and process it."""
     if _engine is None:
+        logger.warning(
+            "reason=engine_not_initialized",
+            event="REJECTED",
+            component="API",
+        )
         return {"status": "error", "detail": "Engine not initialized"}
 
     event = await _engine.feed_raw(raw)
     if event is None:
+        logger.debug(
+            "kind=%s reason=dedup_or_validation",
+            raw.get("kind") or raw.get("type") or "unknown",
+            event="DROPPED",
+            component="API",
+        )
         return {"status": "dropped", "reason": "deduplication or validation"}
 
+    set_log_context(event_id=event.event_id, session_id=_session_id or "")
     snapshot = _engine.current_state()
 
     # Broadcast updated state to all WS clients
@@ -215,6 +263,14 @@ async def feed_telemetry(raw: dict[str, Any]) -> dict[str, Any]:
         await manager.broadcast(state_message(snapshot))
 
     await manager.broadcast(event_message(event))
+
+    logger.info(
+        "event_id=%s state=%s",
+        event.event_id,
+        snapshot.state.value if snapshot else "UNKNOWN",
+        event="PROCESSED",
+        component="API",
+    )
 
     return {
         "status": "processed",
@@ -254,6 +310,15 @@ async def browser_telemetry(payload: BrowserTelemetryPayload) -> dict[str, Any]:
     snapshot = _engine.current_state()
     if snapshot is not None:
         await manager.broadcast(state_message(snapshot))
+
+    logger.info(
+        "accepted=%d dropped=%d total=%d",
+        accepted,
+        dropped,
+        len(payload.events),
+        event="BATCH",
+        component="BROWSER",
+    )
 
     return {
         "status": "ok",

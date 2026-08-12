@@ -12,6 +12,9 @@ from ..core.policies import PolicyDocument
 from ..domain.violations import ViolationRecord
 from ..core.states import ActivityState
 from ..policy.evaluator import PolicyEvaluator
+from ..logging import get_logger
+
+_logger = get_logger("activity_engine.policy_engine", component="POLICY", event="EVALUATE")
 
 
 class PolicyEngine:
@@ -43,6 +46,13 @@ class PolicyEngine:
 
     def evaluate(self, event: ActivityEvent) -> PolicyDecision:
         """Evaluate an event; escalate based on tracked violations."""
+        _logger.debug(
+            "event_id=%s policy_version=%s",
+            event.event_id,
+            self._evaluator.policy.version,
+            event="EVALUATE",
+            component="POLICY",
+        )
         decision = self._evaluator.evaluate(event)
         key = (event.student_id or self._student_id or "unknown", event.device_id)
 
@@ -60,9 +70,27 @@ class PolicyEngine:
                 duration_seconds=duration,
             )
             self._record_violation(event, decision)
+            _logger.warning(
+                "event_id=%s outcome=%s level=%s action_types=%s reason=%s",
+                event.event_id,
+                decision.outcome.value,
+                decision.level.value if decision.level else "none",
+                [a.value for a in decision.action_types],
+                decision.reason,
+                event="MATCH",
+                component="POLICY",
+            )
         else:
             if key in self._activity_started_at:
                 self._activity_started_at.pop(key)
+            _logger.debug(
+                "event_id=%s outcome=%s reason=%s",
+                event.event_id,
+                decision.outcome.value,
+                decision.reason,
+                event="NO_MATCH",
+                component="POLICY",
+            )
 
         if decision.outcome in (PolicyOutcome.FOCUS, PolicyOutcome.ALLOWED):
             self._violation_counters[key] = 0

@@ -1,4 +1,7 @@
-"""Structured logging helpers.
+"""Structured logging helpers (backward-compatible delegate).
+
+This module now re-exports from :mod:`activity_engine.logging` and keeps the
+old ``create_logger`` API for existing importers.
 
 Never log passwords, cookies, tokens, full private content, or unnecessary
 browsing payloads.
@@ -6,57 +9,41 @@ browsing payloads.
 
 from __future__ import annotations
 
-import json
-import logging
 import sys
-from datetime import UTC, datetime
 from typing import Any
 
-_STRUCTURED_FORMAT = "timestamp={timestamp} level={level} msg={message}"
+from ..logging.logger import (
+    TRACE,
+    configure_logging,
+    get_log_context,
+    get_logger,
+    log_error,
+    reset_log_context,
+    set_log_context,
+    setup_logging,
+)
+from ..logging.sanitize import sanitize_dict, sanitize_message, sanitize_url
 
-class StructuredFormatter(logging.Formatter):
-    """Minimal structured formatter producing key=value lines."""
+def create_logger(name: str = "activity_engine", level: str = "INFO") -> Any:
+    """Create a configured logger (backward-compatible API).
 
-    def format(self, record: logging.LogRecord) -> str:
-        timestamp = datetime.now(UTC).isoformat()
-        base = (
-            f"{timestamp} {record.levelname} {record.getMessage()}"
-        )
-        extra: dict[str, Any] = {}
-        for key, value in record.__dict__.items():
-            if key in {
-                "name", "msg", "args", "levelname", "levelno", "pathname",
-                "filename", "module", "exc_info", "exc_text", "stack_info",
-                "lineno", "funcName", "created", "msecs", "relativeCreated",
-                "thread", "threadName", "processName", "process", "message",
-                "taskName", "asctime",
-            }:
-                continue
-            extra[key] = value
-        parts = [base]
-        for key in sorted(extra):
-            parts.append(f"{key}={safe_value(extra[key])}")
-        if record.exc_info:
-            parts.append(f"exc={self.formatException(record.exc_info)!r}")
-        return " ".join(parts)
+    Uses the new centralized logging system with structured formatting,
+    sanitization, and file rotation.
+    """
+    return get_logger(name, component="SYSTEM", event="LOG")
 
-def safe_value(value: Any) -> str:
-    """Serialize values safely for logs (no nested secrets)."""
-    if isinstance(value, str):
-        return value.replace(" ", "_")
-    try:
-        return json.dumps(value, default=str)
-    except (TypeError, ValueError):
-        return str(value)
 
-def create_logger(name: str = "activity_engine", level: str = "INFO") -> logging.Logger:
-    """Create a configured logger."""
-    logger = logging.getLogger(name)
-    if logger.handlers:
-        return logger
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(StructuredFormatter())
-    logger.addHandler(handler)
-    logger.setLevel(level.upper())
-    logger.propagate = False
-    return logger
+__all__ = [
+    "TRACE",
+    "create_logger",
+    "configure_logging",
+    "setup_logging",
+    "get_logger",
+    "get_log_context",
+    "set_log_context",
+    "reset_log_context",
+    "log_error",
+    "sanitize_dict",
+    "sanitize_message",
+    "sanitize_url",
+]

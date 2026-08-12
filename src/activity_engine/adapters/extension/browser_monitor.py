@@ -21,13 +21,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 from typing import Any
 from urllib.request import urlopen
 
+from ...logging import get_logger
 from ...services.browser_state import BrowserStateStore
 
-logger = logging.getLogger(__name__)
+logger = get_logger("activity_engine.browser", component="BROWSER", event="EVENT")
 
 class ExtensionBrowserMonitor:
     """BrowserMonitor port implementation for Chrome extension telemetry."""
@@ -60,10 +60,21 @@ class ExtensionBrowserMonitor:
     async def start(self) -> None:
         """Start the monitor. Stateless — nothing to prepare."""
         self.started = True
+        logger.info(
+            "mode=%s",
+            "http_poll" if self._api_url else "shared_store",
+            event="CONNECTED",
+            component="BROWSER",
+        )
 
     async def stop(self) -> None:
         """Stop the monitor."""
         self.started = False
+        logger.info(
+            "status=stopped",
+            event="DISCONNECTED",
+            component="BROWSER",
+        )
 
     async def get_active_tabs(self) -> list[dict[str, Any]]:
         """Return the latest active tab(s) tracked by the extension bridge."""
@@ -77,11 +88,28 @@ class ExtensionBrowserMonitor:
         try:
             data = await asyncio.to_thread(self._http_get, url)
             if data is None:
+                logger.warning(
+                    "reason=backend_unavailable",
+                    event="BACKEND_UNAVAILABLE",
+                    component="BROWSER",
+                )
                 return []
             tabs = data.get("tabs") or []
+            logger.debug(
+                "tabs=%d",
+                len(tabs),
+                event="EVENT",
+                component="BROWSER",
+            )
             return [tab for tab in tabs if isinstance(tab, dict)]
         except Exception as exc:  # noqa: BLE001 - polling must never crash
-            logger.warning("browser_monitor=poll_http_failed error=%s", exc)
+            logger.warning(
+                "error_type=%s message=%s",
+                exc.__class__.__name__,
+                exc,
+                event="ERROR",
+                component="BROWSER",
+            )
             return []
 
     @staticmethod

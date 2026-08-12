@@ -9,7 +9,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from ..logging import get_logger
 from .screen import ScreenInfo, ScreenProvider, make_screenshot_filename
+
+logger = get_logger("activity_engine.platform.screen", component="SCREEN", event="INIT")
 
 class WindowsScreenProvider(ScreenProvider):
     """Real screen capture for Windows using ``mss``."""
@@ -18,9 +21,14 @@ class WindowsScreenProvider(ScreenProvider):
         import mss
 
         self._sct = mss.mss()
+        logger.info(
+            "provider=WindowsScreenProvider backend=mss status=READY",
+            event="INIT",
+            component="SCREEN",
+        )
 
     def get_monitors(self) -> list[ScreenInfo]:
-        return [
+        monitors = [
             ScreenInfo(
                 left=int(m["left"]),
                 top=int(m["top"]),
@@ -29,6 +37,13 @@ class WindowsScreenProvider(ScreenProvider):
             )
             for m in self._sct.monitors
         ]
+        logger.debug(
+            "monitors=%d",
+            len(monitors),
+            event="DETECTED",
+            component="SCREEN",
+        )
+        return monitors
 
     def capture(self, monitor_index: int = 0) -> Any:
         """Capture one monitor (0 = all monitors combined)."""
@@ -50,6 +65,24 @@ class WindowsScreenProvider(ScreenProvider):
 
             shot = self.capture(0)
             mss.tools.to_png(shot.rgb, shot.size, output=str(path))
+            try:
+                size = path.stat().st_size
+            except OSError:
+                size = 0
+            logger.debug(
+                "path=%s size=%dKB",
+                path,
+                size // 1024,
+                event="SAVE",
+                component="SCREEN",
+            )
             return path
-        except Exception:
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "error_type=%s message=%s",
+                exc.__class__.__name__,
+                exc,
+                event="ERROR",
+                component="SCREEN",
+            )
             return None

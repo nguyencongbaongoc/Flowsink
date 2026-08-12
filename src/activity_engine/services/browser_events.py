@@ -12,11 +12,12 @@ reach the policy engine.
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 from urllib.parse import urlparse
 
-logger = logging.getLogger(__name__)
+from ..logging import get_logger
+
+logger = get_logger("activity_engine.services.browser_events", component="BROWSER", event="EVENT")
 
 # Raw event kind mapping accepted from the extension. Any unknown kind is dropped.
 _KIND_MAP = {
@@ -42,7 +43,12 @@ def normalize_extension_event(raw: dict[str, Any]) -> dict[str, Any] | None:
     kind_raw = str(raw.get("kind") or raw.get("event_type") or "")
     kind = _KIND_MAP.get(kind_raw)
     if kind is None:
-        logger.warning("browser_event=drop reason=unknown_kind kind=%s", kind_raw)
+        logger.warning(
+            "reason=unknown_kind kind=%s",
+            kind_raw,
+            event="REJECTED",
+            component="BROWSER",
+        )
         return None
 
     device_id = str(raw.get("device_id") or "").strip()
@@ -60,7 +66,12 @@ def normalize_extension_event(raw: dict[str, Any]) -> dict[str, Any] | None:
             # Strip query/fragment server-side as a second safety net.
             clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
         else:
-            logger.warning("browser_event=drop reason=unsafe_url scheme=%s", parsed.scheme)
+            logger.warning(
+                "reason=unsafe_url scheme=%s",
+                parsed.scheme,
+                event="REJECTED",
+                component="BROWSER",
+            )
             return None
 
     # Derive domain from the URL when the extension did not supply one.
@@ -68,7 +79,12 @@ def normalize_extension_event(raw: dict[str, Any]) -> dict[str, Any] | None:
         domain = urlparse(clean_url).netloc.lower().removeprefix("www.")
 
     if not domain and kind != "browser_tab_close":
-        logger.warning("browser_event=drop reason=missing_domain kind=%s", kind)
+        logger.warning(
+            "reason=missing_domain kind=%s",
+            kind,
+            event="REJECTED",
+            component="BROWSER",
+        )
         return None
 
     browser: dict[str, Any] = {
@@ -113,4 +129,11 @@ def normalize_extension_event(raw: dict[str, Any]) -> dict[str, Any] | None:
     if extra_metadata:
         result["metadata"] = extra_metadata
 
+    logger.debug(
+        "kind=%s domain=%s",
+        kind,
+        domain or "none",
+        event="NORMALIZED",
+        component="BROWSER",
+    )
     return result

@@ -7,6 +7,9 @@ from datetime import UTC, datetime
 from ..core.decisions import PolicyDecision, PolicyOutcome
 from ..core.states import ActivityState, ActivityStateMachine, StateSnapshot
 from ..domain.session import MonitoringSession
+from ..logging import get_logger
+
+logger = get_logger("activity_engine.state_engine", component="STATE", event="TRANSITION")
 
 class StateEngine:
     """Owns one :class:`ActivityStateMachine` per student/device pair."""
@@ -31,6 +34,14 @@ class StateEngine:
         key = self._key(student_id, device_id)
         session = MonitoringSession(student_id=key[0], device_id=key[1])
         self._sessions[key] = session
+        logger.info(
+            "session_id=%s student_id=%s device_id=%s",
+            session.session_id,
+            session.student_id,
+            session.device_id,
+            event="SESSION_START",
+            component="SESSION",
+        )
         return session
 
     def end_session(self, student_id: str, device_id: str) -> MonitoringSession | None:
@@ -40,7 +51,22 @@ class StateEngine:
             ended = session.end()
             self._sessions[key] = ended
             self._machine(*key).reset()
+            logger.info(
+                "session_id=%s reason=user_shutdown student_id=%s device_id=%s",
+                ended.session_id,
+                ended.student_id,
+                ended.device_id,
+                event="SESSION_END",
+                component="SESSION",
+            )
             return ended
+        logger.warning(
+            "reason=session_not_found student_id=%s device_id=%s",
+            student_id,
+            device_id,
+            event="SESSION_ERROR",
+            component="SESSION",
+        )
         return None
 
     def get_session(self, student_id: str, device_id: str) -> MonitoringSession | None:

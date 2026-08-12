@@ -14,6 +14,9 @@ from ..core.policies import BedtimePolicy
 from ..core.states import ActivityState
 from ..engine.action_engine import ActionEngine
 from ..engine.state_engine import StateEngine
+from ..logging import get_logger
+
+logger = get_logger("activity_engine.bedtime_service", component="BEDTIME", event="CHECK")
 
 class BedtimeService:
     """Manages the bedtime flow independent of focus/classroom logic."""
@@ -52,6 +55,14 @@ class BedtimeService:
         stage = self._compute_stage()
 
         if stage != self._last_stage:
+            logger.info(
+                "student_id=%s previous=%s current=%s",
+                self._student_id,
+                self._last_stage,
+                stage,
+                event="STAGE_CHANGED",
+                component="BEDTIME",
+            )
             if stage == "level_1":
                 self._issue_warning(
                     "Sắp đến giờ đi ngủ (15 phút). Vui lòng hoàn thành công việc và chuẩn bị nghỉ ngơi."
@@ -89,6 +100,13 @@ class BedtimeService:
         return "level_3"
 
     def _issue_warning(self, message: str) -> None:
+        logger.info(
+            "student_id=%s stage=%s",
+            self._student_id,
+            self._last_stage,
+            event="WARNING",
+            component="BEDTIME",
+        )
         action = ActionRequest(
             action=ActionType.WARN,
             target="bedtime",
@@ -111,6 +129,12 @@ class BedtimeService:
         self._state_engine.force_state(self._student_id, self._device_id, ActivityState.BEDTIME)
 
     def _enter_restricted_mode(self) -> None:
+        logger.info(
+            "student_id=%s mode=BEDTIME_RESTRICTED",
+            self._student_id,
+            event="RESTRICTED_MODE",
+            component="BEDTIME",
+        )
         action = ActionRequest(
             action=ActionType.ENABLE_RESTRICTED_MODE,
             target="device",
@@ -132,4 +156,10 @@ class BedtimeService:
         self._state_engine.force_state(self._student_id, self._device_id, ActivityState.BEDTIME)
 
     def _leave_restricted_mode(self) -> None:
+        logger.info(
+            "student_id=%s",
+            self._student_id,
+            event="RESTRICTED_MODE_EXIT",
+            component="BEDTIME",
+        )
         self._state_engine.force_state(self._student_id, self._device_id, ActivityState.ALLOWED)

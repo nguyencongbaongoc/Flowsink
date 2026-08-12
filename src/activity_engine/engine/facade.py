@@ -25,9 +25,9 @@ from .event_engine import EventEngine
 from .policy_engine import PolicyEngine
 from .state_engine import StateEngine
 from ..services.screenshot_service import ScreenshotService
-from ..utils.logging import create_logger
+from ..logging import get_logger, set_log_context
 
-_logger = create_logger()
+_logger = get_logger("activity_engine.facade", component="SYSTEM", event="SESSION")
 
 class ActivityEngine:
     """Configured and ready-to-run Activity Engine."""
@@ -87,6 +87,9 @@ class ActivityEngine:
         # Subscribe pipeline: raw/processed events flow to policy engine.
         async def _route(event: ActivityEvent) -> None:
             try:
+                # Correlate logs with this event
+                set_log_context(event_id=event.event_id, device_id=self._device_id)
+
                 # Stamp the active session id so events, violations, snapshots
                 # and future screenshots are all linked to the same session.
                 session = self._state_engine.get_session(
@@ -95,6 +98,7 @@ class ActivityEngine:
                 )
                 if session is not None and event.session_id is None:
                     event = event.model_copy(update={"session_id": session.session_id})
+                    set_log_context(session_id=session.session_id)
 
                 decision = self._policy_engine.evaluate(event)
                 snapshot = self._state_engine.apply_decision(decision)
@@ -103,17 +107,66 @@ class ActivityEngine:
                 # evidence through the platform screen provider. Fault-isolated;
                 # never crashes the pipeline.
                 if self._screenshots.should_capture(decision, event):
+                    _logger.info(
+                        "event_id=%s reason=policy_violation",
+                        event.event_id,
+                        event="TRIGGER",
+                        component="SCREENSHOT",
+                    )
                     self._screenshots.capture(decision, event)
+                else:
+                    _logger.debug(
+                        "event_id=%s reason=policy_not_triggered",
+                        event.event_id,
+                        event="SKIP",
+                        component="SCREENSHOT",
+                    )
 
+                _logger.debug(
+                    "event_id=%s state=%s",
+                    event.event_id,
+                    snapshot.state.value if snapshot else "UNKNOWN",
+                    event="STORED",
+                    component="EVENT",
+                )
                 await self._repository.store_event(event)
                 await self._repository.store_state(snapshot)
                 if decision.action_types:
                     for action in self._escalation_engine.plan(decision):
+                        _logger.info(
+                            "action=%s event_id=%s",
+                            action.action.value,
+                            event.event_id,
+                            event="REQUESTED",
+                            component="ACTION",
+                        )
                         result = await self._action_engine.execute(action)
                         if result.status.value != "SUCCESS":
-                            _logger.warning("action=%s status=%s code=%s", action.action.value, result.status.value, result.error_code)
+                            _logger.warning(
+                                "action=%s status=%s code=%s",
+                                action.action.value,
+                                result.status.value,
+                                result.error_code,
+                                event="FAILED",
+                                component="ACTION",
+                            )
+                        else:
+                            _logger.info(
+                                "action=%s status=%s",
+                                action.action.value,
+                                result.status.value,
+                                event="COMPLETED",
+                                component="ACTION",
+                            )
             except Exception as exc:  # noqa: BLE001 - fault isolation
-                _logger.warning("pipeline_error error=%s", exc)
+                _logger.error(
+                    "operation=pipeline error_type=%s message=%s",
+                    exc.__class__.__name__,
+                    exc,
+                    event="ERROR",
+                    component="SYSTEM",
+                    exc_info=True,
+                )
 
         self._event_engine.subscribe(_route)
 
@@ -126,12 +179,30 @@ class ActivityEngine:
             self._student_id or "unknown-student",
             self._device_id,
         )
-        _logger.info("session=started session_id=%s device=%s", session.session_id, self._device_id)
+        set_log_context(session_id=session.session_id, device_id=self._device_id)
+        _logger.info(
+            "session_id=%s device_id=%s",
+            session.session_id,
+            self._device_id,
+            event="START",
+            component="SESSION",
+        )
         return session.session_id
 
     def end_session(self) -> None:
         """End the active monitoring session."""
-        self._state_engine.end_session(self._student_id or "unknown-student", self._device_id)
+        ended = self._state_engine.end_session(self._student_id or "unknown-student", self._device_id)
+        if ended is not None:
+            _logger.info(
+                "session_id=%s device_id=%s started=%s ended=%s",
+                ended.session_id,
+                ended.device_id,
+                ended.started_at.isoformat(),
+                (ended.ended_at or ended.started_at).isoformat(),
+                event="END",
+                component="SESSION",
+            )
+        set_log_context(session_id=None)
 
     # ------------------------------------------------------------------
     # Event intake

@@ -13,6 +13,10 @@ from typing import Any
 
 import psutil
 
+from ...logging import get_logger
+
+logger = get_logger("activity_engine.process", component="PROCESS", event="SCAN")
+
 class WindowsProcessMonitor:
     """Real Windows process monitor using psutil and Win32 API."""
 
@@ -23,6 +27,11 @@ class WindowsProcessMonitor:
 
     async def start(self) -> None:
         self._running = True
+        logger.info(
+            "backend=psutil status=READY",
+            event="INIT",
+            component="PROCESS",
+        )
 
     async def stop(self) -> None:
         self._running = False

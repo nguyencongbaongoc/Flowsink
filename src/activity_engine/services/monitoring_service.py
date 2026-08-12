@@ -11,9 +11,9 @@ from typing import Any
 
 from ..core.errors import MonitorError
 from ..engine.event_engine import EventEngine
-from ..utils.logging import create_logger
+from ..logging import get_logger
 
-_logger = create_logger()
+_logger = get_logger("activity_engine.monitoring", component="MONITOR", event="START")
 
 class MonitoringService:
     """Orchestrates monitor adapters and feeds the Event Engine."""

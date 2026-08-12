@@ -8,6 +8,9 @@ import sys
 from typing import Any
 
 from .. import __version__
+from ..logging import configure_logging, get_logger, set_log_context
+
+_log = get_logger("activity_engine.cli", component="SYSTEM", event="STARTUP")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -19,6 +22,17 @@ def _build_parser() -> argparse.ArgumentParser:
         "--version",
         action="version",
         version=f"%(prog)s {__version__}",
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Log level for console and file logs (default: INFO)",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress INFO and DEBUG console output (WARNING and above only)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -57,6 +71,24 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    # Configure centralized logging with CLI-supplied options
+    configure_logging(level=args.log_level, quiet=args.quiet)
+
+    # Startup banner
+    print("=" * 60)
+    print(f"  FLOWSINK ACTIVITY ENGINE v{__version__}")
+    print("=" * 60)
+    import platform
+
+    _log.info(
+        "Initializing system...",
+        event="STARTUP",
+        component="SYSTEM",
+        platform=platform.system(),
+        python=platform.python_version(),
+        version=__version__,
+    )
 
     if args.command == "doctor":
         return _cmd_doctor(args)

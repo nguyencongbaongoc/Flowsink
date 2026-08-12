@@ -18,9 +18,9 @@ from typing import Any, Callable
 from pydantic import ValidationError
 
 from ..core.events import ActivityEvent
-from ..utils.logging import create_logger
+from ..logging import get_logger, set_log_context
 
-_logger = create_logger()
+_logger = get_logger("activity_engine.event_engine", component="EVENT", event="RECEIVED")
 
 
 class EventInput(StrEnum):
@@ -87,33 +87,86 @@ class EventEngine:
             event = self.normalize(raw)
         except (ValidationError, ValueError) as exc:
             self.metrics["events_dropped"] += 1
-            _logger.warning("event=drop reason=validation error=%s", exc)
+            _logger.warning(
+                "event_type=%s error=%s",
+                raw.get("kind") or raw.get("type") or "unknown",
+                exc,
+                event="REJECTED",
+                component="EVENT",
+            )
             return None
+
+        set_log_context(event_id=event.event_id)
+        _logger.info(
+            "event_type=%s device_id=%s",
+            event.type.value,
+            event.device_id,
+            event="RECEIVED",
+            component="EVENT",
+        )
 
         if self._is_stale(event):
             self.metrics["events_stale"] += 1
             self.metrics["events_dropped"] += 1
-            _logger.warning("event=drop reason=stale event_id=%s", event.event_id)
+            _logger.warning(
+                "event_id=%s reason=stale",
+                event.event_id,
+                event="DROPPED",
+                component="EVENT",
+            )
             return None
 
         if self._is_duplicate(event):
             self.metrics["events_duplicate"] += 1
             self.metrics["events_dropped"] += 1
+            _logger.warning(
+                "event_id=%s reason=already_seen",
+                event.event_id,
+                event="DUPLICATE",
+                component="EVENT",
+            )
             return None
 
         self.metrics["events_processed"] += 1
+        _logger.debug(
+            "event_id=%s session_id=%s",
+            event.event_id,
+            event.session_id or "none",
+            event="NORMALIZED",
+            component="EVENT",
+        )
         await self._notify(event)
         return event
 
     async def process(self, event: ActivityEvent) -> ActivityEvent:
         """Accept an already-normalized event (e.g. from a service)."""
+        set_log_context(event_id=event.event_id)
         if self._is_stale(event):
             self.metrics["events_stale"] += 1
             self.metrics["events_dropped"] += 1
+            _logger.warning(
+                "event_id=%s reason=stale",
+                event.event_id,
+                event="DROPPED",
+                component="EVENT",
+            )
             return event
         if self._is_duplicate(event):
             self.metrics["events_duplicate"] += 1
+            _logger.warning(
+                "event_id=%s reason=already_seen",
+                event.event_id,
+                event="DUPLICATE",
+                component="EVENT",
+            )
         self.metrics["events_processed"] += 1
+        _logger.debug(
+            "event_id=%s type=%s",
+            event.event_id,
+            event.type.value,
+            event="PROCESSED",
+            component="EVENT",
+        )
         await self._notify(event)
         return event
 

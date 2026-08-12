@@ -11,13 +11,13 @@ the fields the policy engine consumes.
 
 from __future__ import annotations
 
-import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from ..logging import get_logger
 from .browser_events import normalize_extension_event
 
-logger = logging.getLogger(__name__)
+logger = get_logger("activity_engine.services.browser_state", component="BROWSER", event="STATE")
 
 _MAX_DEVICES = 64
 
@@ -39,6 +39,13 @@ class BrowserStateStore:
             return None
 
         browser = event["browser"]
+        logger.debug(
+            "kind=%s device=%s",
+            event["kind"],
+            (event.get("metadata") or {}).get("extension_device_id") or "unknown-device",
+            event="RECORDED",
+            component="BROWSER",
+        )
         device_key = (
             str((event.get("metadata") or {}).get("extension_device_id") or "")
             or "unknown-device"

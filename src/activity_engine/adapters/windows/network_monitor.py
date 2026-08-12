@@ -12,6 +12,9 @@ from typing import Any
 
 import psutil
 
+from ...logging import get_logger
+
+logger = get_logger("activity_engine.network", component="NETWORK", event="SCAN")
 
 class WindowsNetworkMonitor:
     """Real Windows network monitor backed by psutil."""
@@ -22,6 +25,11 @@ class WindowsNetworkMonitor:
 
     async def start(self) -> None:
         self.started = True
+        logger.info(
+            "backend=psutil status=READY",
+            event="INIT",
+            component="NETWORK",
+        )
 
     async def stop(self) -> None:
         self.started = False
@@ -44,6 +52,18 @@ class WindowsNetworkMonitor:
                 if host not in self._seen:
                     self._seen[host] = 1.0
                     domains.append({"domain": host, "protocol": "tcp"})
-        except (psutil.AccessDenied, psutil.NoSuchProcess):
-            pass
+            logger.debug(
+                "new=%d",
+                len(domains),
+                event="SCAN",
+                component="NETWORK",
+            )
+        except (psutil.AccessDenied, psutil.NoSuchProcess) as exc:
+            logger.warning(
+                "error_type=%s message=%s",
+                exc.__class__.__name__,
+                exc,
+                event="ERROR",
+                component="NETWORK",
+            )
         return domains

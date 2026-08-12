@@ -19,6 +19,9 @@ from ..core.actions import (
     WarningRequest,
 )
 from ..core.decisions import PolicyDecision
+from ..logging import get_logger
+
+logger = get_logger("activity_engine.escalation_engine", component="ACTION", event="PLAN")
 
 class EscalationEngine:
     """Translates PolicyDecisions into a list of ActionRequests."""
@@ -30,6 +33,14 @@ class EscalationEngine:
         """Build the action plan for a decision."""
         student_id = decision.student_id or "unknown-student"
         actions: list[ActionRequest] = []
+        logger.debug(
+            "student_id=%s policy_id=%s outcome=%s",
+            student_id,
+            decision.policy_id,
+            decision.outcome.value,
+            event="EVALUATE",
+            component="ACTION",
+        )
 
         for action_type in decision.action_types:
             if action_type not in (
@@ -101,4 +112,20 @@ class EscalationEngine:
                         ),
                     )
                 )
+        if actions:
+            logger.info(
+                "student_id=%s actions=%d policy_id=%s",
+                student_id,
+                len(actions),
+                decision.policy_id,
+                event="REQUESTED",
+                component="ACTION",
+            )
+        else:
+            logger.debug(
+                "student_id=%s reason=no_actions",
+                student_id,
+                event="SKIPPED",
+                component="ACTION",
+            )
         return actions
