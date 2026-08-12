@@ -52,11 +52,13 @@ class ActivityEngine:
         self._student_id = kwargs.pop("student_id", None)
         self._device_id = kwargs.pop("device_id", None) or resolve_device_id(self._config)
 
-        try:
-            self._policy = policy or load_default_policy()
-        except Exception as exc:  # noqa: BLE001
-            _logger.warning("default_policy_load_failed error=%s falling_back=empty", exc)
-            self._policy = PolicyDocument()
+        if policy is not None:
+            self._policy = policy
+        else:
+            # Canonical policy source is the bundled default_policies.yaml.
+            # Fail fast rather than silently degrading to an empty policy,
+            # which would disable all enforcement.
+            self._policy = load_default_policy()
 
         self._executor = executor or self._default_executor()
         mode = self._config.runtime.mode if hasattr(self._config, "runtime") else EnforcementMode.DRY_RUN

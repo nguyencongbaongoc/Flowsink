@@ -1,0 +1,135 @@
+graph TD
+    classDef active fill:#d4edda,stroke:#28a745,stroke-width:2px;
+    classDef legacy fill:#ffeeba,stroke:#ffc107,stroke-width:2px;
+    classDef orphan fill:#f8d7da,stroke:#dc3545,stroke-width:2px;
+    classDef broken fill:#f5c6cb,stroke:#c82333,stroke-width:2px;
+    classDef demo fill:#e2e3e5,stroke:#6c757d,stroke-width:1px;
+
+    subgraph ENTRYPOINTS
+        E1["__main__.py"]
+        E2["cli/__main__.py"]
+        E3["console script activity-engine"]
+        E4["run_windows.bat"]
+        E5["uvicorn server:app"]
+        E6["browser-extension/background.js"]
+        E7["examples/simulate.py"]
+    end
+
+    subgraph CORE
+        FACADE["engine/facade.py<br/>ActivityEngine"]
+        EVENT["engine/event_engine.py"]
+        POLICY["engine/policy_engine.py"]
+        EVAL["policy/evaluator.py"]
+        CLASS["policy/classifier.py"]
+        ACTION["engine/action_engine.py"]
+        ESCAL["engine/escalation_engine.py"]
+        STATE["engine/state_engine.py"]
+        REPO["persistence/repository.py"]
+        SHOT["services/screenshot_service.py"]
+        CONF["config/loader.py"]
+        PLOA["policy/loader.py"]
+        SCREEN["platform/screen.py"]
+        WINSCREEN["platform/windows_screen.py"]
+        MOCKSCREEN["platform/mock_screen.py"]
+        MOCKEXEC["adapters/mock/action_executor.py"]
+    end
+
+    subgraph SERVER_RESOURCES
+        BSTATE["services/browser_state.py"]
+        BEVENTS["services/browser_events.py"]
+        TDTO["transport/dto.py"]
+        TPROTO["transport/protocol.py"]
+        TSER["transport/serialization.py"]
+        UIDS["utils/ids.py"]
+    end
+
+    subgraph ADAPTERS_LIVE
+        MOCKPROC["adapters/mock/process_monitor.py"]
+        MOCKBROW["adapters/mock/browser_monitor.py"]
+        MOCKNET["adapters/mock/network_monitor.py"]
+        EXTBROW["adapters/extension/browser_monitor.py"]
+        WINPROC["adapters/windows/process_monitor.py"]
+        WINNET["adapters/windows/network_monitor.py"]
+        WINDEV["adapters/windows/device_controller.py"]
+    end
+
+    subgraph ORPHANS
+        ACTIVITY["services/activity_service.py"]
+        BEDTIME["services/bedtime_service.py"]
+        FOCUS["services/focus_service.py"]
+        UTILLOG["utils/logging.py"]
+        WINBROW["adapters/windows/browser_monitor.py"]
+        WINACTION["adapters/windows/action_executor.py"]
+    end
+
+    subgraph PHANTOM_FRONTEND
+        INDEX["index.html"]
+        VITE["vite.config.js"]
+        PKG["package.json"]
+        ASSETS["src/assets/* (hero.png, react.svg, vite.svg)"]
+    end
+
+    subgraph MISSING
+        POLICYFILE{{"config/policy.yaml (MISSING)"}}
+        LOCALYAML{{"config/local.yaml (MISSING)"}}
+        ENTRY{{"React src/main.* (MISSING)"}}
+    end
+
+    E1 --> E2
+    E2 --> FACADE
+    E3 --> FACADE
+    E4 --> E2
+    E5 --> FACADE
+    E5 --> SERVER_RESOURCES
+    E6 --> E5
+    E7 --> FACADE
+
+    FACADE --> CONF
+    FACADE --> PLOA
+    FACADE --> EVENT
+    FACADE --> POLICY
+    FACADE --> STATE
+    FACADE --> ACTION
+    FACADE --> ESCAL
+    FACADE --> REPO
+    FACADE --> SHOT
+    FACADE --> UIDS
+
+    POLICY --> EVAL
+    EVAL --> CLASS
+    SHOT --> SCREEN
+    SCREEN --> WINSCREEN
+    SCREEN --> MOCKSCREEN
+    ACTION --> MOCKEXEC
+
+    BSTATE --> BEVENTS
+    E5 --> BSTATE
+    E5 --> TDTO
+    E5 --> TPROTO
+    E5 --> TSER
+
+    E2 --> MOCKPROC
+    E2 --> MOCKBROW
+    E2 --> MOCKNET
+    E2 --> EXTBROW
+    E2 --> WINPROC
+    E2 --> WINNET
+    E2 --> WINDEV
+
+    CONF -.-> LOCALYAML
+    E2 --> POLICYFILE
+    VITE --> ENTRY
+    INDEX --> VITE
+    PKG --> VITE
+    ASSETS -. note "no runtime consumer" .- INDEX
+
+    class E1,E2,E3,E4,E5,E6,E7 active;
+    class FACADE,EVENT,POLICY,EVAL,CLASS,ACTION,ESCAL,STATE,REPO,SHOT,CONF,PLOA,SCREEN,WINSCREEN,MOCKSCREEN,MOCKEXEC active;
+    class BSTATE,BEVENTS,TDTO,TPROTO,TSER,UIDS active;
+    class MOCKPROC,MOCKBROW,MOCKNET,EXTBROW,WINPROC,WINNET,WINDEV active;
+    class ACTIVITY,BEDTIME,FOCUS orphan;
+    class UTILLOG legacy;
+    class WINBROW orphan;
+    class WINACTION orphan;
+    class INDEX,VITE,PKG,ASSETS orphan;
+    class POLICYFILE,LOCALYAML,ENTRY broken;

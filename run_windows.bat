@@ -33,7 +33,30 @@ if errorlevel 1 (
 )
 
 REM ------------------------------------------------------------
-REM 2. Create virtual environment if missing
+REM 2. Verify Python version is 3.11 or newer (CRITICAL)
+REM    The engine requires Python >= 3.11.  A bare `python` may
+REM    resolve to Python 2.x on some systems, which would break
+REM    venv creation, dependency install and the application.
+REM ------------------------------------------------------------
+%PYTHON% -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" >nul 2>nul
+if errorlevel 1 (
+    echo [ERROR] Python 3.11 or newer is required.
+    for /f "delims=" %%v in ('%PYTHON% -c "import sys; print(sys.version.split()[0])" 2^>nul') do set "DETECTED=%%v"
+    if defined DETECTED (
+        echo Detected: !DETECTED!
+    ) else (
+        echo Detected: unknown
+    )
+    echo.
+    echo Please install Python 3.11+ and retry.
+    echo Download: https://www.python.org/downloads/
+    echo.
+    pause
+    exit /b 1
+)
+
+REM ------------------------------------------------------------
+REM 3. Create virtual environment if missing
 REM ------------------------------------------------------------
 if not exist "%VENV_DIR%\Scripts\python.exe" (
     echo [SETUP] Creating virtual environment...
@@ -49,7 +72,7 @@ set "PYTHON_EXE=%VENV_DIR%\Scripts\python.exe"
 set "PIP_EXE=%VENV_DIR%\Scripts\pip.exe"
 
 REM ------------------------------------------------------------
-REM 3. Install dependencies if missing (marker file based)
+REM 4. Install dependencies if missing (marker file based)
 REM ------------------------------------------------------------
 if not exist "%VENV_DIR%\.deps_installed" (
     echo [SETUP] Installing dependencies...
@@ -64,12 +87,12 @@ if not exist "%VENV_DIR%\.deps_installed" (
 )
 
 REM ------------------------------------------------------------
-REM 4. Make the src/ package importable
+REM 5. Make the src/ package importable
 REM ------------------------------------------------------------
 set "PYTHONPATH=%CD%\src;%PYTHONPATH%"
 
 REM ------------------------------------------------------------
-REM 5. Run the engine
+REM 6. Run the engine
 REM ------------------------------------------------------------
 if /I "%~1"=="server" (
     echo [RUN] Starting FastAPI server on http://127.0.0.1:8000...

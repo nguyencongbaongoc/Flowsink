@@ -1,0 +1,113 @@
+# Policy Configuration for Activity Engine
+# Copy this file to policy.yaml and adjust rules as needed
+# This file defines which activities trigger warnings or actions
+
+# Default blocking rules (categories of websites to block)
+defaults:
+  enforcement_mode: "block"  # Options: "block", "warn", "monitor"
+
+# Domain categories and rules
+categories:
+  # Social Media - Block during focus time
+  social_media:
+    action: "block"
+    domains:
+      - "facebook.com"
+      - "instagram.com"
+      - "twitter.com"
+      - "tiktok.com"
+      - "snapchat.com"
+    schedule:
+      start: "08:00"
+      end: "22:00"
+      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+
+  # Gaming - Block during study hours
+  gaming:
+    action: "block"
+    domains:
+      - "steam.com"
+      - "epicgames.com"
+      - "twitch.tv"
+      - "discord.com"
+    schedule:
+      start: "08:00"
+      end: "18:00"
+      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+
+  # Entertainment - Warn during focus time
+  entertainment:
+    action: "warn"
+    domains:
+      - "youtube.com"
+      - "netflix.com"
+      - "spotify.com"
+    schedule:
+      start: "08:00"
+      end: "18:00"
+      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+
+  # Educational - Always allowed
+  educational:
+    action: "allow"
+    domains:
+      - "classroom.google.com"
+      - "docs.google.com"
+      - "khanacademy.org"
+      - "coursera.org"
+      - "udemy.com"
+    schedule: null  # Always active
+
+# Application rules (for Windows platform)
+applications:
+  # Blocked applications during study time
+  blocked:
+    - name: "steam.exe"
+      action: "block"
+    - name: "Discord.exe"
+      action: "block"
+    - name: "Spotify.exe"
+      action: "warn"
+
+  # Allowed applications
+  allowed:
+    - name: "chrome.exe"
+      action: "monitor"
+    - name: "notepad.exe"
+      action: "allow"
+    - name: "word.exe"
+      action: "allow"
+
+# Focus Mode Settings
+focus_mode:
+  # Duration in minutes
+  work_duration: 45
+  break_duration: 5
+  
+  # Screenshot settings during focus
+  screenshot:
+    enabled: true
+    interval_seconds: 300  # 5 minutes
+    random_offset: 60      # Random offset up to 60 seconds
+  
+  # Escalation settings
+  escalation:
+    warning_threshold: 3   # Warnings before escalation
+    escalation_timeout: 60 # Seconds before parent notification
+
+# Notification settings
+notifications:
+  warning:
+    sound: true
+    visual: true
+  blocked:
+    sound: true
+    visual: true
+    log: true
+
+# Logging settings
+logging:
+  level: "INFO"
+  include_domains: true
+  include_applications: true
+  include_screenshots: false  # Privacy consideration

@@ -31,10 +31,23 @@ class ConfigLoader:
             raise ConfigurationError(f"Invalid configuration in {self.path}: {exc}") from exc
 
 def load_dev_config() -> Config:
-    """Load config/local.yaml if present, otherwise sensible defaults."""
+    """Load config/local.yaml if present, otherwise sensible defaults.
+
+    Config resolution (canonical):
+      bundled package defaults (Config())
+          ↓ overridden by
+      optional config/local.yaml  (git-ignored local override)
+
+    The local file is optional; absence is logged, not silent.
+    """
+    from ..logging import get_logger
+
+    _log = get_logger("activity_engine.config", component="CONFIG", event="LOAD")
     local = Path("config/local.yaml")
     if local.exists():
+        _log.info("path=%s status=loaded", local, event="LOCAL")
         return ConfigLoader(local).load()
+    _log.info("path=%s status=missing_fallback_to_defaults", local, event="LOCAL")
     return Config()
 
 def resolve_device_id(config: Config) -> str:

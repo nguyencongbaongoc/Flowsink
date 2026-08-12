@@ -25,7 +25,19 @@
       --border:       rgba(255, 255, 255, 0.1);
       --text:         #f8fafc;
       --muted:        #94a3b8;
-      --radius:       16px;
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-lg:    16px;
+      --radius:       16px; /* Legacy support */
+      
+      --spacing-sm:   0.75rem;
+      --spacing-md:   1rem;
+      --spacing-lg:   1.5rem;
+
+      --shadow-sm:    0 4px 12px rgba(0, 0, 0, 0.15);
+      --shadow-md:    0 10px 30px rgba(0, 0, 0, 0.35);
+      --shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.45);
+      --shadow-glow:  0 0 20px rgba(168, 85, 247, 0.4);
     }
 
     html { scroll-behavior: smooth; }
@@ -39,6 +51,57 @@
         radial-gradient(ellipse 60% 50% at 85% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 60%);
     }
 
+    /* Skip link for keyboard navigation */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 1rem;
+      background: var(--primary);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      z-index: 9999;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 600;
+      transition: top 0.2s;
+    }
+    .skip-link:focus {
+      top: 1rem;
+      outline: 3px solid var(--primary-light);
+    }
+
+    /* Improved focus states */
+    *:focus-visible {
+      outline: 2px solid var(--primary-light);
+      outline-offset: 2px;
+    }
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid var(--primary-light);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Fix missing focus on simulation buttons */
+    .btn-sim:focus {
+      outline: 3px solid var(--primary-light);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Increase contrast for muted text */
+    .text-muted, .muted, .logo p, .description {
+      color: #a5b4fc !important; /* Changed from #94a3b8 for better contrast */
+    }
+
+    /* Remove outline: none and add proper focus */
+    .habit-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3) !important;
+    }
+
     .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem 1rem; }
 
     /* ===================== GLASSMORPHISM ===================== */
@@ -47,9 +110,18 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-md);
+    }
+    .glass-sm {
+      background: var(--surface-card);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
     }
 
     /* ===================== HEADER ===================== */
@@ -629,6 +701,7 @@
 
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 <div class="container">
 
   <!-- ==================== HEADER ==================== -->
@@ -656,18 +729,19 @@
   </header>
 
   <!-- ==================== TABS ==================== -->
-  <div class="glass tabs">
-    <button class="tab active" onclick="switchTab('survey')" id="tab-survey">📅 Khảo sát Thời khóa biểu</button>
-    <button class="tab" onclick="switchTab('dashboard')" id="tab-dashboard">🩺 Chẩn đoán Sức khỏe Y khoa</button>
-    <button class="tab" onclick="switchTab('schedule')" id="tab-schedule">✨ Lịch đề xuất mới (Tùy chỉnh)</button>
-    <button class="tab" onclick="switchTab('focus')" id="tab-focus">⏱️ Focus Mode (Pomodoro 45/5)</button>
-    <button class="tab" onclick="switchTab('monitor')" id="tab-monitor">🛡️ Giám sát Hoạt động Trực tiếp</button>
+  <div class="glass tabs" role="tablist" aria-label="Phân hệ chức năng FocusMate">
+    <button class="tab active" role="tab" aria-selected="true" aria-controls="content-survey" onclick="switchTab('survey')" id="tab-survey" aria-label="Khảo sát thời khóa biểu hàng tuần">📅 Khảo sát Thời khóa biểu</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="content-dashboard" onclick="switchTab('dashboard')" id="tab-dashboard" aria-label="Bảng chẩn đoán sức khỏe y khoa">🩺 Chẩn đoán Sức khỏe Y khoa</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="content-schedule" onclick="switchTab('schedule')" id="tab-schedule" aria-label="Bảng thời khóa biểu đề xuất tối ưu">✨ Lịch đề xuất mới (Tùy chỉnh)</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="content-focus" onclick="switchTab('focus')" id="tab-focus" aria-label="Chế độ học tập tập trung Pomodoro">⏱️ Focus Mode (Pomodoro 45/5)</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="content-monitor" onclick="switchTab('monitor')" id="tab-monitor" aria-label="Giám sát hoạt động thời gian thực">🛡️ Giám sát Hoạt động Trực tiếp</button>
   </div>
 
   <div class="glass panel">
 
     <!-- ==================== TAB 1: SURVEY / TIMETABLE BOARD ==================== -->
-    <div class="tab-content active" id="content-survey">
+    <div class="tab-content active" id="content-survey" role="tabpanel" aria-labelledby="tab-survey">
+      <main id="main-content">
       
       <div class="palette-container">
         <div class="palette-title">
@@ -817,7 +891,7 @@
     </div>
 
     <!-- ==================== TAB 5: LIVE ACTIVITY MONITOR ==================== -->
-    <div class="tab-content" id="content-monitor">
+    <div class="tab-content" id="content-monitor" role="tabpanel" aria-labelledby="tab-monitor">
       <div class="monitor-panel">
 
         <!-- Top Connection & Session Control Bar -->

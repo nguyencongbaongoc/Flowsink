@@ -12,6 +12,11 @@ venv/
 env/
 env.local/
 
+# Local environment files — always keep secrets out of version control
+.env
+.env.*
+!.env.example
+
 # Test / coverage
 .pytest_cache/
 .coverage

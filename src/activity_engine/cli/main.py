@@ -378,20 +378,26 @@ def _cmd_simulate(args: argparse.Namespace) -> int:
 
 
 def _cmd_policy_check(args: argparse.Namespace) -> int:
-    """Validate a policy YAML file."""
+    """Validate a policy YAML file, or the bundled default when no path given."""
     from pathlib import Path
 
     from ..core.errors import ConfigurationError
-    from ..policy.loader import PolicyLoader
+    from ..policy.loader import PolicyLoader, load_default_policy
 
     path = Path(args.path)
     try:
-        policy = PolicyLoader(path).load()
+        if path.exists():
+            policy = PolicyLoader(path).load()
+        else:
+            # Canonical default policy source is the bundled default_policies.yaml.
+            policy = load_default_policy()
     except ConfigurationError as exc:
         print(f"Policy check FAILED: {exc}")
         return 1
 
-    print(f"Policy check PASSED for {path}")
+    print(f"Policy check PASSED ({path if path.exists() else 'bundled default_policies.yaml'})")
+    if not path.exists():
+        print(f"  Note: {path} not found; validated bundled default policy.")
     print(f"  Version : {policy.version}")
     print(f"  Focus   : enabled={policy.focus.enabled}")
     print(f"  Bedtime : enabled={policy.bedtime.enabled} start={policy.bedtime.start_time}")
