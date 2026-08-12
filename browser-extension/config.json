@@ -1,0 +1,7 @@
+{
+  "api_base_url": "http://127.0.0.1:8000",
+  "device_id": "unknown-device",
+  "max_queue": 100,
+  "retry_base_ms": 1000,
+  "retry_max_ms": 60000
+}

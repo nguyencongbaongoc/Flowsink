@@ -26,8 +26,10 @@ from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from .engine.facade import ActivityEngine
+from .services.browser_state import BrowserStateStore
 from .transport.dto import MessageType, WireMessage
 from .transport.protocol import (
     build_message,
@@ -45,6 +47,12 @@ logger = logging.getLogger(__name__)
 
 _engine: ActivityEngine | None = None
 _session_id: str | None = None
+_browser_store = BrowserStateStore()
+
+class BrowserTelemetryPayload(BaseModel):
+    """Wire model for POST /api/browser/telemetry."""
+
+    events: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ConnectionManager:
@@ -214,6 +222,61 @@ async def feed_telemetry(raw: dict[str, Any]) -> dict[str, Any]:
         "state": snapshot.state.value if snapshot else "UNKNOWN",
     }
 
+
+# ---------------------------------------------------------------------------
+# Browser extension bridge endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api/browser/telemetry", tags=["browser"])
+async def browser_telemetry(payload: BrowserTelemetryPayload) -> dict[str, Any]:
+    """Accept batched tab telemetry from the Chrome extension.
+
+    Each event is normalized and forwarded through the Activity Engine
+    pipeline. The payload format matches the ``browser-extension/background.js``
+    contract (see browser-extension/README.md).
+    """
+    if _engine is None:
+        return {"status": "error", "detail": "Engine not initialized", "accepted": 0}
+
+    accepted = 0
+    dropped = 0
+    for raw in payload.events:
+        normalized = _browser_store.record_event(raw)
+        if normalized is None:
+            dropped += 1
+            continue
+        event = await _engine.feed_raw(normalized)
+        if event is None:
+            dropped += 1
+        else:
+            accepted += 1
+
+    snapshot = _engine.current_state()
+    if snapshot is not None:
+        await manager.broadcast(state_message(snapshot))
+
+    return {
+        "status": "ok",
+        "accepted": accepted,
+        "dropped": dropped,
+    }
+
+@app.get("/api/browser/active", tags=["browser"])
+async def browser_active(device_id: str | None = None) -> dict[str, Any]:
+    """Return the latest active tab(s) tracked from extension telemetry.
+
+    Polled by the CLI monitor when running with ``--backend extension``.
+    """
+    tabs = _browser_store.get_active_tabs(device_id)
+    return {"tabs": tabs, "count": len(tabs)}
+
+@app.get("/api/session/status", tags=["session"])
+async def session_status() -> dict[str, Any]:
+    """Return the active session status (id, active flag)."""
+    return {
+        "session_id": _session_id,
+        "active": _session_id is not None,
+    }
 
 # ---------------------------------------------------------------------------
 # WebSocket endpoint

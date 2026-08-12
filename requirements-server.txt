@@ -1,0 +1,4 @@
+# FastAPI + WebSocket backend for the Flowsink dashboard
+fastapi>=0.111
+uvicorn[standard]>=0.29
+websockets>=12.0

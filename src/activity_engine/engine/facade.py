@@ -24,6 +24,7 @@ from .escalation_engine import EscalationEngine
 from .event_engine import EventEngine
 from .policy_engine import PolicyEngine
 from .state_engine import StateEngine
+from ..services.screenshot_service import ScreenshotService
 from ..utils.logging import create_logger
 
 _logger = create_logger()
@@ -81,12 +82,29 @@ class ActivityEngine:
         self._escalation_engine = EscalationEngine(default_policy_id=self._policy.version)
 
         self._repository = InMemoryActivityRepository()
+        self._screenshots = ScreenshotService()
 
         # Subscribe pipeline: raw/processed events flow to policy engine.
         async def _route(event: ActivityEvent) -> None:
             try:
+                # Stamp the active session id so events, violations, snapshots
+                # and future screenshots are all linked to the same session.
+                session = self._state_engine.get_session(
+                    event.student_id or self._student_id or "unknown-student",
+                    self._device_id,
+                )
+                if session is not None and event.session_id is None:
+                    event = event.model_copy(update={"session_id": session.session_id})
+
                 decision = self._policy_engine.evaluate(event)
                 snapshot = self._state_engine.apply_decision(decision)
+
+                # Screenshot trigger: WARNING+ outcomes capture optional
+                # evidence through the platform screen provider. Fault-isolated;
+                # never crashes the pipeline.
+                if self._screenshots.should_capture(decision, event):
+                    self._screenshots.capture(decision, event)
+
                 await self._repository.store_event(event)
                 await self._repository.store_state(snapshot)
                 if decision.action_types:
@@ -139,7 +157,9 @@ class ActivityEngine:
         return await self._repository.get_events(limit=limit)
 
     async def violations(self, student_id: str | None = None, limit: int = 50) -> list[ViolationRecord]:
-        return await self._repository.get_violations(
+        # Canonical violation source is the PolicyEngine; the repository's
+        # store_violation() is intentionally unused to avoid dual sources.
+        return self._policy_engine.violations_for(
             student_id or self._student_id or "unknown-student",
             limit=limit,
         )

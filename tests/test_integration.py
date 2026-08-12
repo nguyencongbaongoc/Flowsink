@@ -59,6 +59,61 @@ async def test_end_to_end_pipeline_dry_run() -> None:
     engine.end_session()
 
 @pytest.mark.asyncio
+async def test_violations_use_policy_engine_canonical_source() -> None:
+    """Violations returned by the facade must come from the PolicyEngine,
+    not the repository (which is never populated), and must carry the
+    active session id."""
+    config = Config(runtime=RuntimeConfig(mode=EnforcementMode.ENFORCE))
+    executor = MockActionExecutor()
+    engine = ActivityEngine(config=config, executor=executor, student_id="ST-VIOL")
+    session_id = engine.start_session()
+
+    await engine.feed_raw(
+        {
+            "kind": "browser_navigation",
+            "browser": {"domain": "youtube.com", "tab_id": "tab-v1"},
+        }
+    )
+
+    violations = await engine.violations()
+    assert len(violations) == 1
+    v = violations[0]
+    assert v.student_id == "ST-VIOL"
+    assert v.session_id == session_id
+    assert v.domain == "youtube.com"
+    assert v.level == "level_1"
+
+    engine.end_session()
+
+@pytest.mark.asyncio
+async def test_events_are_stamped_with_session_id() -> None:
+    """Every event stored in the repository must carry the active session id."""
+    config = Config(runtime=RuntimeConfig(mode=EnforcementMode.DRY_RUN))
+    executor = MockActionExecutor()
+    engine = ActivityEngine(config=config, executor=executor, student_id="ST-SID")
+    session_id = engine.start_session()
+
+    await engine.feed_raw(
+        {
+            "kind": "browser_navigation",
+            "browser": {"domain": "classroom.google.com", "tab_id": "tab-s1"},
+        }
+    )
+    await engine.feed_raw(
+        {
+            "kind": "browser_navigation",
+            "browser": {"domain": "docs.google.com", "tab_id": "tab-s2"},
+        }
+    )
+
+    events = await engine.recent_events(limit=10)
+    assert len(events) == 2
+    assert all(e.session_id == session_id for e in events)
+    assert all(e.device_id for e in events)
+
+    engine.end_session()
+
+@pytest.mark.asyncio
 async def test_end_to_end_pipeline_enforce() -> None:
     # 1. Config & facade setup in enforce mode
     config = Config(runtime=RuntimeConfig(mode=EnforcementMode.ENFORCE))
