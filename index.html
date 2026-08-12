@@ -346,6 +346,27 @@
     .empty-state p { color: var(--muted); margin-top: .4rem; font-size: .9rem; }
     .section-title { font-size: 1.15rem; font-weight: 700; color: #e2e8f0; margin-bottom: .75rem; display: flex; align-items: center; gap: .5rem; }
 
+    /* ===================== ACTIVITY BAR CHART ===================== */
+    .activity-chart { display: flex; flex-direction: column; gap: .6rem; }
+    .act-row { display: flex; align-items: center; gap: .65rem; }
+    .act-label { width: 130px; font-size: .78rem; font-weight: 600; color: #94a3b8; text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .act-bar-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 99px; height: 14px; overflow: hidden; }
+    .act-bar-fill  { height: 100%; border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1); min-width: 4px; }
+    .act-val { font-size: .75rem; font-weight: 700; color: #e2e8f0; width: 35px; text-align: right; flex-shrink: 0; }
+
+    /* ===================== PRINT STYLES ===================== */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .glass { background: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; }
+      .tabs, .btn, header .status-badge-pill, .btn-outline, #analyze-btn { display: none !important; }
+      .tab-content { display: block !important; margin-bottom: 2rem; }
+      .score-circle { border-color: #6366f1 !important; color: #6366f1 !important; }
+      .risk-card { border-left: 4px solid #f59e0b !important; page-break-inside: avoid; }
+      .risk-card.risk-cao { border-left-color: #ef4444 !important; }
+      .timetable th, .timetable td { border: 1px solid #ccc !important; }
+      .cell-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .container { padding: 1rem .5rem; }
@@ -353,7 +374,259 @@
       .timetable tbody th.time-label { font-size: .72rem; width: 85px; }
       .score-banner { flex-direction: column; text-align: center; }
     }
+
+    /* ===================== LIVE MONITOR DASHBOARD ===================== */
+    .monitor-panel {
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+    .status-badge-pill {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .35rem .85rem; border-radius: 999px; font-size: .8rem; font-weight: 700;
+      background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border);
+    }
+    .status-dot {
+      width: 9px; height: 9px; border-radius: 50%; display: inline-block;
+    }
+    .dot-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .dot-connecting { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; animation: pulse 1s infinite; }
+    .dot-offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .monitor-grid {
+      display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.25rem;
+    }
+    @media (max-width: 900px) {
+      .monitor-grid { grid-template-columns: 1fr; }
+    }
+
+    .monitor-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .monitor-card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem; padding-bottom: .6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .monitor-card-title {
+      font-size: .95rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: .45rem;
+    }
+
+    .state-hero {
+      text-align: center; padding: 1.5rem 1rem; border-radius: 12px;
+      background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(255, 255, 255, 0.1);
+      transition: all .3s ease; position: relative; overflow: hidden;
+    }
+    .state-hero-badge {
+      display: inline-block; font-size: 1.8rem; font-weight: 900; letter-spacing: 1px;
+      padding: .4rem 1.4rem; border-radius: 12px; margin-bottom: .6rem;
+      text-transform: uppercase;
+    }
+    /* State color glow classes */
+    .state-ALLOWED    { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.08); }
+    .state-ALLOWED .state-hero-badge { color: #34d399; background: rgba(16, 185, 129, 0.2); box-shadow: 0 0 25px rgba(16, 185, 129, 0.3); }
+
+    .state-FOCUS      { border-color: rgba(99, 102, 241, 0.5); background: rgba(99, 102, 241, 0.08); }
+    .state-FOCUS .state-hero-badge { color: #a5b4fc; background: rgba(99, 102, 241, 0.2); box-shadow: 0 0 25px rgba(99, 102, 241, 0.3); }
+
+    .state-WARNING    { border-color: rgba(245, 158, 11, 0.6); background: rgba(245, 158, 11, 0.1); }
+    .state-WARNING .state-hero-badge { color: #fde68a; background: rgba(245, 158, 11, 0.25); box-shadow: 0 0 25px rgba(245, 158, 11, 0.4); animation: pulse 1.5s infinite; }
+
+    .state-BLOCKED    { border-color: rgba(239, 68, 68, 0.6); background: rgba(239, 68, 68, 0.1); }
+    .state-BLOCKED .state-hero-badge { color: #fca5a5; background: rgba(239, 68, 68, 0.25); box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); }
+
+    .state-RESTRICTED { border-color: rgba(225, 29, 72, 0.8); background: rgba(225, 29, 72, 0.15); }
+    .state-RESTRICTED .state-hero-badge { color: #fda4af; background: rgba(225, 29, 72, 0.3); box-shadow: 0 0 30px rgba(225, 29, 72, 0.5); }
+
+    .state-BEDTIME    { border-color: rgba(139, 92, 246, 0.5); background: rgba(139, 92, 246, 0.08); }
+    .state-BEDTIME .state-hero-badge { color: #c4b5fd; background: rgba(139, 92, 246, 0.2); }
+
+    .state-UNKNOWN    { border-color: rgba(148, 163, 184, 0.3); background: rgba(15, 23, 42, 0.5); }
+    .state-UNKNOWN .state-hero-badge { color: #94a3b8; background: rgba(148, 163, 184, 0.15); }
+
+    .risk-bar-container {
+      margin-top: 1rem; text-align: left;
+    }
+    .risk-bar-bg {
+      width: 100%; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 999px; overflow: hidden; margin-top: .4rem;
+    }
+    .risk-bar-fill {
+      height: 100%; width: 0%; border-radius: 999px; transition: width .4s ease, background-color .4s ease;
+      background: var(--success);
+    }
+
+    .stat-mini-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin-top: 1rem;
+    }
+    .stat-mini-card {
+      background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px; padding: .85rem; text-align: center;
+    }
+    .stat-mini-val { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: .2rem; }
+    .stat-mini-label { font-size: .75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+
+    .sim-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .65rem;
+    }
+    .btn-sim {
+      padding: .65rem .85rem; border-radius: 8px; font-size: .82rem; font-weight: 600;
+      border: 1px solid var(--border); cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: .5rem; transition: all .15s; background: rgba(30, 41, 59, 0.8); color: #fff;
+    }
+    .btn-sim:hover { transform: translateY(-2px); filter: brightness(1.15); }
+    .btn-sim-study { border-color: rgba(99, 102, 241, 0.4); }
+    .btn-sim-study:hover { background: rgba(99, 102, 241, 0.2); }
+    .btn-sim-code  { border-color: rgba(16, 185, 129, 0.4); }
+    .btn-sim-code:hover  { background: rgba(16, 185, 129, 0.2); }
+    .btn-sim-warn  { border-color: rgba(245, 158, 11, 0.4); }
+    .btn-sim-warn:hover  { background: rgba(245, 158, 11, 0.2); }
+    .btn-sim-block { border-color: rgba(239, 68, 68, 0.4); }
+    .btn-sim-block:hover { background: rgba(239, 68, 68, 0.2); }
+    .btn-sim-cam   { border-color: rgba(168, 85, 247, 0.4); }
+    .btn-sim-cam:hover   { background: rgba(168, 85, 247, 0.2); }
+
+    .terminal-box {
+      background: #060911; border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px; font-family: 'Consolas', 'Courier New', monospace;
+      font-size: .8rem; color: #cbd5e1; height: 260px; overflow-y: auto;
+      padding: .75rem; line-height: 1.6;
+    }
+    .terminal-row {
+      display: flex; gap: .5rem; align-items: flex-start; margin-bottom: .25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03); padding-bottom: .2rem;
+    }
+    .log-ts { color: #64748b; font-size: .75rem; white-space: nowrap; }
+    .log-tag { font-size: .7rem; font-weight: 700; padding: .1rem .35rem; border-radius: 4px; text-transform: uppercase; white-space: nowrap; }
+    .log-tag-event    { background: rgba(99, 102, 241, 0.25); color: #c4b5fd; }
+    .log-tag-warn     { background: rgba(245, 158, 11, 0.25); color: #fde68a; }
+    .log-tag-block    { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+    .log-tag-decision { background: rgba(16, 185, 129, 0.25); color: #a7f3d0; }
+    .log-tag-system   { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+
+    /* ===================== FOCUS GUARD OVERLAY ===================== */
+    .focus-guard-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex; align-items: center; justify-content: center;
+      animation: guardFadeIn .3s ease;
+      backdrop-filter: blur(6px);
+    }
+    @keyframes guardFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .focus-guard-modal {
+      background: linear-gradient(135deg, rgba(30,10,10,0.98), rgba(50,12,12,0.98));
+      border: 2px solid #ef4444;
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      max-width: 520px; width: 90%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(239, 68, 68, 0.5), 0 0 120px rgba(239, 68, 68, 0.2);
+      animation: guardShake .5s ease;
+    }
+    @keyframes guardShake {
+      0%, 100% { transform: translateX(0); }
+      15% { transform: translateX(-12px); }
+      30% { transform: translateX(12px); }
+      45% { transform: translateX(-8px); }
+      60% { transform: translateX(8px); }
+      75% { transform: translateX(-4px); }
+    }
+    .guard-icon { font-size: 3.5rem; margin-bottom: .75rem; animation: guardPulse 1s infinite; }
+    @keyframes guardPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    .guard-title { font-size: 1.4rem; font-weight: 900; color: #fca5a5; margin-bottom: .6rem; letter-spacing: .5px; }
+    .guard-domain { font-size: 1.05rem; color: #fde68a; font-weight: 700; margin-bottom: 1rem;
+      background: rgba(239,68,68,0.15); padding: .4rem 1rem; border-radius: 8px; display: inline-block; }
+    .guard-verdict {
+      margin: .85rem 0; padding: .75rem 1rem; border-radius: 10px; font-size: .9rem; font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .guard-verdict.verdict-bad  { background: rgba(239,68,68,0.18); color: #fca5a5; border-color: rgba(239,68,68,0.35); }
+    .guard-verdict.verdict-good { background: rgba(16,185,129,0.18); color: #a7f3d0; border-color: rgba(16,185,129,0.35); }
+    .guard-verdict.verdict-loading { background: rgba(100,116,139,0.2); color: #cbd5e1; }
+    .guard-screenshot { font-size: .8rem; color: #94a3b8; margin-bottom: .75rem; }
+    .guard-countdown-wrap { margin: 1rem 0; }
+    .guard-countdown {
+      font-size: 3.2rem; font-weight: 900; color: #ef4444; line-height: 1;
+      text-shadow: 0 0 20px rgba(239,68,68,0.7);
+    }
+    .guard-countdown.urgent { color: #fbbf24; animation: guardPulse .5s infinite; }
+    .guard-countdown-label { font-size: .8rem; color: #94a3b8; margin-top: .25rem; }
+    .guard-btn-row { display: flex; gap: .75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+    .guard-btn-return {
+      padding: .7rem 1.5rem; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; font-size: .95rem;
+      background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.4); transition: all .2s;
+    }
+    .guard-btn-return:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .guard-btn-stop {
+      padding: .7rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .88rem;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; transition: all .2s;
+    }
+    .guard-btn-stop:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* Violation log in Tab 4 */
+    .violation-log-panel {
+      margin: 1.5rem auto 0; max-width: 650px; text-align: left;
+      background: rgba(30,41,59,0.6); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 12px; padding: 1rem;
+    }
+    .violation-log-title { font-size: .88rem; font-weight: 700; color: #fca5a5; margin-bottom: .6rem; display: flex; align-items: center; gap: .4rem; }
+    .violation-item {
+      display: flex; align-items: flex-start; gap: .6rem; padding: .45rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05); font-size: .82rem;
+    }
+    .violation-item:last-child { border-bottom: none; }
+    .violation-badge { font-size: .7rem; font-weight: 700; padding: .15rem .4rem; border-radius: 4px;
+      background: rgba(239,68,68,0.2); color: #fca5a5; white-space: nowrap; }
+    .violation-domain { color: #fde68a; font-weight: 600; }
+    .violation-time { color: #64748b; font-size: .75rem; margin-left: auto; white-space: nowrap; }
+
+    /* ===================== SCREEN TIME ADVISOR ===================== */
+    .screentime-advisor {
+      margin-top: 1.75rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 14px; padding: 1.5rem;
+    }
+    .screentime-title { font-size: 1.1rem; font-weight: 800; color: #c4b5fd; margin-bottom: .3rem; display: flex; align-items: center; gap: .5rem; }
+    .screentime-subtitle { font-size: .84rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .screentime-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 800px) { .screentime-grid { grid-template-columns: 1fr; } }
+
+    .screentime-chart-section h4 { font-size: .88rem; font-weight: 700; color: #e2e8f0; margin-bottom: .75rem; }
+    .screentime-bar-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .5rem; }
+    .st-day-label { width: 45px; font-size: .78rem; font-weight: 600; color: #94a3b8; text-align: right; flex-shrink: 0; }
+    .st-bar-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 99px; height: 18px; overflow: hidden; }
+    .st-bar-fill { height: 100%; border-radius: 99px; display: flex; align-items: center; padding-left: 6px;
+      font-size: .7rem; font-weight: 700; color: rgba(255,255,255,0.9);
+      transition: width .7s cubic-bezier(.4,0,.2,1); min-width: 30px; }
+    .st-bar-safe { background: linear-gradient(90deg, #10b981, #34d399); }
+    .st-bar-warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .st-bar-danger { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .st-val { font-size: .78rem; font-weight: 700; color: #e2e8f0; width: 38px; text-align: right; flex-shrink: 0; }
+
+    .health-plan-section h4 { font-size: .88rem; font-weight: 700; color: #e2e8f0; margin-bottom: .75rem; }
+    .health-plan-item {
+      display: flex; gap: .75rem; align-items: flex-start;
+      padding: .6rem .75rem; border-radius: 8px; margin-bottom: .5rem;
+      background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .health-plan-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: .05rem; }
+    .health-plan-info strong { font-size: .85rem; color: #e2e8f0; display: block; }
+    .health-plan-info span { font-size: .78rem; color: var(--muted); }
+    .health-plan-badge {
+      margin-left: auto; font-size: .72rem; font-weight: 700; padding: .15rem .5rem;
+      border-radius: 6px; white-space: nowrap; flex-shrink: 0;
+    }
+    .hp-badge-eye { background: rgba(99,102,241,0.2); color: #c4b5fd; }
+    .hp-badge-water { background: rgba(56,189,248,0.2); color: #7dd3fc; }
+    .hp-badge-stretch { background: rgba(16,185,129,0.2); color: #a7f3d0; }
+    .hp-badge-danger { background: rgba(239,68,68,0.2); color: #fca5a5; }
+
+    .screentime-summary { margin-top: 1rem; padding: .75rem 1rem; border-radius: 10px;
+      background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); font-size: .85rem; }
   </style>
+
 </head>
 <body>
 <div class="container">
@@ -367,9 +640,18 @@
         <p>Hệ Thống Tối Ưu Lịch Sinh Hoạt &amp; Sức Khỏe Học Sinh (Chuẩn Y Khoa)</p>
       </div>
     </div>
-    <div class="ai-badge">
-      <span>🤖 AI Engine:</span>
-      <strong>Gemma 4 31B Medical</strong>
+    <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+      <!-- Live Server Indicator -->
+      <div class="status-badge-pill" id="header-server-pill" onclick="switchTab('monitor')" style="cursor:pointer" title="Nhấp để xem Bảng Giám Sát Live">
+        <span class="status-dot dot-connecting" id="header-server-dot"></span>
+        <span id="header-server-text">Engine: Đang kết nối...</span>
+      </div>
+      <!-- API Key Setting -->
+      <button type="button" class="btn btn-outline" style="font-size:.78rem;padding:.35rem .75rem" onclick="openApiKeyModal()" title="Cấu hình Google Gemini API Key">🔑 API Key</button>
+      <div class="ai-badge">
+        <span>🤖 AI:</span>
+        <strong>Gemma 4 / Gemini Medical</strong>
+      </div>
     </div>
   </header>
 
@@ -379,6 +661,7 @@
     <button class="tab" onclick="switchTab('dashboard')" id="tab-dashboard">🩺 Chẩn đoán Sức khỏe Y khoa</button>
     <button class="tab" onclick="switchTab('schedule')" id="tab-schedule">✨ Lịch đề xuất mới (Tùy chỉnh)</button>
     <button class="tab" onclick="switchTab('focus')" id="tab-focus">⏱️ Focus Mode (Pomodoro 45/5)</button>
+    <button class="tab" onclick="switchTab('monitor')" id="tab-monitor">🛡️ Giám sát Hoạt động Trực tiếp</button>
   </div>
 
   <div class="glass panel">
@@ -515,12 +798,233 @@
               <span style="font-size:.84rem;color:var(--muted)">Đứng dậy vươn vai, xoay cổ nhẹ nhàng và uống 1 ngụm nước ấm.</span>
             </div>
           </div>
+        <div id="focus-guard-status-card" style="margin-top:1.25rem;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:.75rem 1rem;font-size:.85rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+          <div>
+            <span style="color:#c4b5fd;font-weight:700">🛡️ Giám Sát Nền Trực Tiếp:</span>
+            <span id="focus-guard-status-text" style="color:var(--muted)">Sẵn sàng (Chụp ảnh &amp; phân tích ngẫu nhiên 5-10p + Bắt đổi tab/thẻ mới)</span>
+          </div>
+          <button class="btn btn-outline" style="font-size:.78rem;padding:.35rem .75rem" onclick="focusGuard.triggerRandomCheckDemo()">⚡ Chụp ngẫu nhiên ngay (Demo 5-10p)</button>
         </div>
+      </div>
+
+      <!-- Violation Log Panel -->
+      <div class="violation-log-panel" id="violation-log-panel" style="margin-top: 1.5rem; background: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2);">
+        <div class="violation-log-title" style="color: #fca5a5; font-weight: 700; margin-bottom: 0.5rem;">📝 Nhật ký Vi phạm Focus Mode (Hôm nay)</div>
+        <div id="violation-log-list" style="color:var(--muted);font-size:.84rem;padding:.25rem 0">
+          ✔️ Chưa có vi phạm nào — Hãy duy trì tập trung!
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 5: LIVE ACTIVITY MONITOR ==================== -->
+    <div class="tab-content" id="content-monitor">
+      <div class="monitor-panel">
+
+        <!-- Top Connection & Session Control Bar -->
+        <div class="monitor-card" style="padding:.9rem 1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem">
+            <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+              <span style="font-size:.85rem;font-weight:700;color:var(--muted)">🌐 Máy chủ Backend:</span>
+              <input type="text" id="backend-host-input" class="habit-input" value="http://127.0.0.1:8000" style="width:210px;padding:.4rem .65rem;font-size:.82rem" />
+              <button class="btn btn-outline" onclick="reconnectEngine()" style="font-size:.78rem;padding:.4rem .8rem">🔄 Kết nối lại</button>
+              <div class="status-badge-pill" id="monitor-conn-badge">
+                <span class="status-dot dot-connecting" id="monitor-conn-dot"></span>
+                <span id="monitor-conn-text">Đang kiểm tra kết nối...</span>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+              <span style="font-size:.85rem;color:var(--muted)">Mã học sinh:</span>
+              <input type="text" id="monitor-student-id" class="habit-input" value="student-001" style="width:120px;padding:.4rem .65rem;font-size:.82rem" />
+              <button class="btn btn-submit" id="btn-session-toggle" onclick="toggleMonitoringSession()" style="font-size:.82rem;padding:.45rem 1rem">
+                ▶ Bắt đầu phiên
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Monitor Grid -->
+        <div class="monitor-grid">
+          
+          <!-- Column 1: Live State Snapshot & Risk Meter -->
+          <div style="display:flex;flex-direction:column;gap:1.25rem">
+            
+            <div class="monitor-card">
+              <div class="monitor-card-header">
+                <div class="monitor-card-title">
+                  <span>🎯 Trạng Thái Hoạt Động Thời Gian Thực</span>
+                </div>
+                <span style="font-size:.78rem;color:var(--muted)" id="monitor-session-indicator">Phiên: Chưa kích hoạt</span>
+              </div>
+
+              <!-- State Hero Display -->
+              <div class="state-hero state-UNKNOWN" id="state-hero-box">
+                <div class="state-hero-badge" id="state-badge-text">UNKNOWN</div>
+                <div style="font-size:.9rem;color:#cbd5e1;margin-bottom:.4rem" id="state-desc-text">Hệ thống đang ở trạng thái chờ telemetry.</div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.8rem;background:rgba(0,0,0,0.3);padding:.75rem;border-radius:8px">
+                  <div style="text-align:left">
+                    <span style="font-size:.72rem;color:var(--muted);display:block">ỨNG DỤNG (PROCESS)</span>
+                    <strong style="font-size:.85rem;color:#f8fafc" id="live-process-text">—</strong>
+                  </div>
+                  <div style="text-align:left">
+                    <span style="font-size:.72rem;color:var(--muted);display:block">TRÌNH DUYỆT (DOMAIN)</span>
+                    <strong style="font-size:.85rem;color:#60a5fa" id="live-domain-text">—</strong>
+                  </div>
+                </div>
+
+                <!-- Risk Score Bar -->
+                <div class="risk-bar-container">
+                  <div style="display:flex;justify-content:space-between;font-size:.78rem;font-weight:600">
+                    <span>Mức độ Rủi ro Vi phạm (Risk Score):</span>
+                    <span id="risk-score-text" style="color:var(--success)">0.00 / 1.0</span>
+                  </div>
+                  <div class="risk-bar-bg">
+                    <div class="risk-bar-fill" id="risk-score-bar" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metrics Mini Grid -->
+              <div class="stat-mini-grid">
+                <div class="stat-mini-card">
+                  <div class="stat-mini-val" id="metric-events-val" style="color:#818cf8">0</div>
+                  <div class="stat-mini-label">📥 Sự kiện đã xử lý</div>
+                </div>
+                <div class="stat-mini-card">
+                  <div class="stat-mini-val" id="metric-violations-val" style="color:#ef4444">0</div>
+                  <div class="stat-mini-label">⚠️ Vi phạm chính sách</div>
+                </div>
+                <div class="stat-mini-card">
+                  <div class="stat-mini-val" id="metric-warnings-val" style="color:#f59e0b">0</div>
+                  <div class="stat-mini-label">🔔 Cảnh báo đã phát</div>
+                </div>
+                <div class="stat-mini-card">
+                  <div class="stat-mini-val" id="metric-ws-val" style="color:#10b981">0</div>
+                  <div class="stat-mini-label">👥 WS Clients Kết nối</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity Breakdown Chart -->
+            <div class="monitor-card">
+              <div class="monitor-card-header">
+                <div class="monitor-card-title">📊 Thống kê Hoạt động (Phiên)</div>
+                <span style="font-size:.75rem;color:var(--muted)" id="chart-total-label">Tổng: 0 sự kiện</span>
+              </div>
+              <div class="activity-chart" id="activity-chart">
+                <div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.84rem">
+                  📡 Gửi telemetry để xem biểu đồ hoạt động...
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1.25rem">
+            
+            <!-- 1-Click Telemetry Tester -->
+            <div class="monitor-card">
+              <div class="monitor-card-header">
+                <div class="monitor-card-title">
+                  <span>⚡ Thử Nghiệm Telemetry (1-Click Simulator)</span>
+                </div>
+                <span style="font-size:.75rem;color:var(--muted)">Gửi sự kiện tức thời</span>
+              </div>
+              <p style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem">
+                Nhấp vào các nút bên dưới để gửi sự kiện giả lập và kiểm tra phản ứng của Policy &amp; State Engine:
+              </p>
+              <div class="sim-grid">
+                <button type="button" class="btn-sim btn-sim-study" onclick="simulateEvent('classroom')">
+                  <span>📚</span>
+                  <div>
+                    <strong style="display:block">Google Classroom</strong>
+                    <small style="color:#94a3b8">Học tập ➔ FOCUS</small>
+                  </div>
+                </button>
+                <button type="button" class="btn-sim btn-sim-code" onclick="simulateEvent('vscode')">
+                  <span>💻</span>
+                  <div>
+                    <strong style="display:block">VS Code (Dev)</strong>
+                    <small style="color:#94a3b8">Tiến trình ➔ ALLOWED</small>
+                  </div>
+                </button>
+                <button type="button" class="btn-sim btn-sim-warn" onclick="simulateEvent('youtube')">
+                  <span>📺</span>
+                  <div>
+                    <strong style="display:block">YouTube</strong>
+                    <small style="color:#94a3b8">Giải trí ➔ WARNING</small>
+                  </div>
+                </button>
+                <button type="button" class="btn-sim btn-sim-block" onclick="simulateEvent('discord')">
+                  <span>🎮</span>
+                  <div>
+                    <strong style="display:block">Discord / Game</strong>
+                    <small style="color:#94a3b8">Vi phạm ➔ BLOCKED</small>
+                  </div>
+                </button>
+                <button type="button" class="btn-sim btn-sim-cam" onclick="triggerHostScreenshot()">
+                  <span>📸</span>
+                  <div>
+                    <strong style="display:block">Chụp Màn Hình Host</strong>
+                    <small style="color:#94a3b8">GDI / mss Screenshot</small>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Event Stream Terminal Log -->
+            <div class="monitor-card">
+              <div class="monitor-card-header">
+                <div class="monitor-card-title">
+                  <span>📡 Dòng Sự Kiện Trực Tiếp (Live Event Stream)</span>
+                </div>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                  <label style="font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.25rem;cursor:pointer">
+                    <input type="checkbox" id="auto-scroll-log" checked /> Cuộn tự động
+                  </label>
+                  <button class="btn btn-outline" onclick="clearEventLogs()" style="font-size:.72rem;padding:.25rem .6rem">🧹 Xóa log</button>
+                </div>
+              </div>
+              <div class="terminal-box" id="terminal-log-box">
+                <div class="terminal-row">
+                  <span class="log-ts">[Hệ thống]</span>
+                  <span class="log-tag log-tag-system">SYSTEM</span>
+                  <span>Đang khởi tạo kết nối tới Flowsink Engine...</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
     </div>
 
   </div><!-- end .panel -->
 </div><!-- end .container -->
+
+<!-- ==================== FOCUS GUARD OVERLAY ==================== -->
+<div id="focus-guard-overlay" class="focus-guard-overlay" style="display:none">
+  <div class="focus-guard-modal">
+    <div class="guard-icon">🚨</div>
+    <div class="guard-title">CẢNH BÁO VI PHẠM TẬP TRUNG!</div>
+    <div class="guard-domain" id="guard-domain-text">—</div>
+    <div class="guard-verdict verdict-loading" id="guard-verdict-box">
+      🧠 Đang phân tích trang web này bằng AI...
+    </div>
+    <div class="guard-screenshot" id="guard-screenshot-status"></div>
+    <div class="guard-countdown-wrap">
+      <div class="guard-countdown" id="guard-countdown">30</div>
+      <div class="guard-countdown-label">giây để quay lại học, nếu không Focus Mode sẽ dừng</div>
+    </div>
+    <div class="guard-btn-row">
+      <button class="guard-btn-return" onclick="focusGuard.returnToFocus()">&#9989; Quay lại học ngay</button>
+      <button class="guard-btn-stop" onclick="focusGuard.dismissAndStop()">&#9209; Dừng Focus Mode</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =====================================================================
@@ -787,28 +1291,55 @@ Chú ý: "scheduleMatrix" phải có đủ 10 khung giờ tương ứng:
 "type" trong scheduleMatrix chỉ gồm: chip-work, chip-study, chip-meal, chip-shower, chip-sport, chip-sleep, chip-relax.`;
 }
 
+function openApiKeyModal() {
+  const currentKey = localStorage.getItem('gemini_api_key') || '';
+  const newKey = prompt('Nhập Google Gemini API Key của bạn:\nLấy miễn phí tại: https://aistudio.google.com/app/apikey', currentKey);
+  if (newKey !== null) {
+    if (newKey.trim()) {
+      localStorage.setItem('gemini_api_key', newKey.trim());
+      alert('✅ Đã lưu API Key thành công!');
+    } else {
+      localStorage.removeItem('gemini_api_key');
+      alert('ℹ️ Đã chuyển về chế độ Clinical AI Engine nội bộ.');
+    }
+  }
+}
+
 async function callGemmaAPI(prompt) {
-  const key = "AQ.Ab8RN6ISX24IFm4MPFaEhb-KEbhVNWv1wSlK6RC7TC1hYnWflQ";
-  const models = ["gemma-4-31b-it", "gemini-2.5-flash", "gemini-flash-latest"];
+  // Use key from localStorage, or the key provided in .env.local as default
+  const savedKey = localStorage.getItem('gemini_api_key') || "";
+  const key = savedKey.trim() || "AQ.Ab8RN6ISX24IFm4MPFaEhb-KEbhVNWv1wSlK6RC7TC1hYnWflQ";
+
+  // If no key at all, use internal engine immediately
+  if (!key) {
+    console.info("Chưa có API Key. Sử dụng Clinical AI Engine nội bộ.");
+    await new Promise(r => setTimeout(r, 600));
+    return generateClinicalReport();
+  }
+
+  const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
   let lastErr = null;
 
   for (const model of models) {
     try {
       const bodyPayload = {
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
       };
-      if (!model.startsWith('gemma')) {
-        bodyPayload.generationConfig = { responseMimeType: 'application/json' };
-      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bodyPayload)
+          body: JSON.stringify(bodyPayload),
+          signal: controller.signal
         }
       );
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -817,7 +1348,6 @@ async function callGemmaAPI(prompt) {
 
       const data = await res.json();
       const parts = data?.candidates?.[0]?.content?.parts || [];
-      // Skip reasoning trace parts (thought: true), take actual JSON part
       const answerPart = parts.find(p => !p.thought && p.text) || parts[parts.length - 1] || {};
       const text = answerPart.text || '';
       const clean = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
@@ -826,10 +1356,140 @@ async function callGemmaAPI(prompt) {
       return JSON.parse(match[0]);
     } catch (e) {
       lastErr = e;
-      console.warn(`Model ${model} failed, trying next fallback:`, e.message);
+      console.warn(`Model ${model} failed:`, e.message);
     }
   }
-  throw lastErr || new Error('Không thể kết nối đến máy chủ AI. Vui lòng thử lại sau.');
+
+  // Fallback to internal clinical engine if all models fail
+  console.info("Dùng Clinical Fallback Engine do API phản hồi lỗi:", lastErr?.message);
+  return generateClinicalReport();
+}
+
+/* =====================================================================
+   SMART CLINICAL FALLBACK ENGINE (Dự phòng khi offline / không có API Key)
+===================================================================== */
+function generateClinicalReport() {
+  const water = parseFloat(document.getElementById('waterIntake').value) || 1.5;
+  const showerTime = document.getElementById('showerTime').value || '19:00';
+  const showerHour = parseInt(showerTime.split(':')[0]) || 19;
+  const activeSymptoms = Array.from(document.querySelectorAll('#symptoms-tags .tag-item.active')).map(t => t.textContent);
+
+  // Analyze late night & screen habits
+  let lateNightSlots = 0;
+  let continuousStudySlots = 0;
+  let gameSlots = 0;
+
+  DAYS.forEach(day => {
+    // Check late night (slot 8: 22:30-23:30 and slot 9: 23:30-06:00)
+    const s8 = surveyMatrix[8]?.[day]?.text || '';
+    const s9 = surveyMatrix[9]?.[day]?.text || '';
+    if (s8.includes('Học') || s8.includes('Game') || s8.includes('Tắm')) lateNightSlots++;
+    if (s9.includes('Game') || s9.includes('Học') || s9.includes('Điện thoại')) lateNightSlots += 2;
+
+    // Check game slots
+    TIME_SLOTS.forEach((_, sIdx) => {
+      const act = surveyMatrix[sIdx]?.[day]?.text || '';
+      if (act.includes('Game') || act.includes('MXH')) gameSlots++;
+      if (act.includes('Tự học') || act.includes('Ôn thi')) continuousStudySlots++;
+    });
+  });
+
+  // Calculate score
+  let score = 85;
+  let risks = [];
+
+  // 1. Eye fatigue & screen time
+  if (gameSlots > 5 || continuousStudySlots > 8 || activeSymptoms.some(s => s.includes('Mỏi mắt') || s.includes('Cận'))) {
+    score -= 15;
+    risks.push({
+      name: "Hội chứng thị giác màn hình & Cận thị tiến triển",
+      probability: "Cao",
+      reason: "Thời gian nhìn màn hình và sách vở liên tục trên 2 giờ không có quãng nghỉ 20-20-20.",
+      medicalExplanation: "Cơ thể mi mắt phải co thắt liên tục gây thiếu máu cục bộ giác mạc, tăng áp lực nội nhãn dẫn đến tiến triển độ cận và khô giác mạc mạn tính."
+    });
+  }
+
+  // 2. Late night shower (after 20:30)
+  if (showerHour >= 21) {
+    score -= 20;
+    risks.push({
+      name: "Nguy cơ co thắt mạch não / Cảm lạnh do Tắm khuya (" + showerTime + ")",
+      probability: "Cao",
+      reason: "Thói quen tắm sau 21h00 khi nhiệt độ cơ thể hạ thấp và huyết áp dao động.",
+      medicalExplanation: "Nước lạnh hoặc thay đổi nhiệt độ đột ngột ban đêm kích hoạt phản xạ thần kinh giao cảm gây co thắt mạch vành và mạch máu não, tăng nguy cơ đột quỵ và liệt dây thần kinh số 7 ngoại biên."
+    });
+  } else if (showerHour >= 20) {
+    score -= 8;
+    risks.push({
+      name: "Thời điểm tắm cận giờ tối",
+      probability: "Trung bình",
+      reason: "Tắm sau 20h00 có thể làm gián đoạn chu kỳ tiết hormone Melatonin của giấc ngủ.",
+      medicalExplanation: "Thân nhiệt tăng sau khi tắm muộn làm trì hoãn pha khởi phát giấc ngủ sâu."
+    });
+  }
+
+  // 3. Sleep deficit / Late night
+  if (lateNightSlots > 3 || activeSymptoms.some(s => s.includes('Mất ngủ') || s.includes('Uể oải'))) {
+    score -= 15;
+    risks.push({
+      name: "Rối loạn nhịp sinh học & Thiếu ngủ mạn tính (Sleep Deficit)",
+      probability: "Cao",
+      reason: "Thức khuya sau 23h00 và tiếp xúc ánh sáng xanh điện thoại trước khi ngủ.",
+      medicalExplanation: "Ánh sáng xanh bước sóng 450-480nm ức chế tuyến tùng tiết Melatonin, làm suy giảm pha ngủ REM và ức chế hệ thống glymphatic dọn dẹp độc tố amyloid-beta trong não bộ."
+    });
+  }
+
+  // 4. Posture / Neck pain
+  if (activeSymptoms.some(s => s.includes('vai gáy') || s.includes('Lưng'))) {
+    score -= 10;
+    risks.push({
+      name: "Hội chứng cổ rùa (Text Neck) & Đau cột sống thắt lưng",
+      probability: "Trung bình",
+      reason: "Ngồi học sai tư thế và cúi gập đầu góc > 45 độ trong thời gian dài.",
+      medicalExplanation: "Trọng lượng đầu tác động lên đốt sống cổ tăng từ 5kg lên 22kg khi cúi 45 độ, làm căng cơ thang và thoái hóa đĩa đệm cột sống cổ C5-C6."
+    });
+  }
+
+  // 5. Water intake
+  if (water < 1.5) {
+    score -= 8;
+    risks.push({
+      name: "Thiếu nước nội bào & Giảm tưới máu vỏ não",
+      probability: "Trung bình",
+      reason: `Lượng nước nạp vào (${water}L/ngày) thấp hơn mức khuyến nghị 2.0L - 2.5L.`,
+      medicalExplanation: "Mất nước nhẹ 1-2% trọng lượng cơ thể làm giảm 15% lưu lượng máu lên não, gây đau đầu căng thẳng và giảm khả năng tập trung chú ý."
+    });
+  }
+
+  score = Math.max(35, Math.min(95, score));
+
+  // Build optimized schedule matrix
+  const optSchedule = [
+    { slot: "06:00 - 07:00", mon: "🍱 Thức dậy, uống 300ml nước ấm & Ăn sáng", tue: "🍱 Thức dậy & Ăn sáng", wed: "🍱 Thức dậy & Ăn sáng", thu: "🍱 Thức dậy & Ăn sáng", fri: "🍱 Thức dậy & Ăn sáng", sat: "🏃 Thể dục nhẹ & Ăn sáng", sun: "☕ Thức dậy & Thư giãn", type: "chip-meal" },
+    { slot: "07:00 - 08:00", mon: "🎒 Đến trường / Chuẩn bị", tue: "🎒 Đến trường", wed: "🎒 Đến trường", thu: "🎒 Đến trường", fri: "🎒 Đến trường", sat: "🎒 Hoạt động ngoại khóa", sun: "☕ Đọc sách / Đi dạo", type: "chip-work" },
+    { slot: "08:00 - 11:30", mon: "📚 Học trên lớp (Nghỉ 20-20-20)", tue: "📚 Học trên lớp", wed: "📚 Học trên lớp", thu: "📚 Học trên lớp", fri: "📚 Học trên lớp", sat: "✍️ Tự học Focus 45/5", sun: "☕ Sinh hoạt gia đình", type: "chip-work" },
+    { slot: "11:30 - 13:00", mon: "🍱 Ăn trưa & 😴 Ngủ trưa 25p", tue: "🍱 Ăn trưa & Ngủ trưa", wed: "🍱 Ăn trưa & Ngủ trưa", thu: "🍱 Ăn trưa & Ngủ trưa", fri: "🍱 Ăn trưa & Ngủ trưa", sat: "🍱 Ăn trưa & Nghỉ trưa", sun: "🍱 Ăn trưa gia đình", type: "chip-meal" },
+    { slot: "13:30 - 17:00", mon: "📚 Học ca chiều", tue: "📚 Học ca chiều", wed: "📚 Học ca chiều", thu: "📚 Học ca chiều", fri: "📚 Học ca chiều", sat: "🏃 Thể thao / Hoạt động", sun: "🏃 Thể thao ngoài trời", type: "chip-work" },
+    { slot: "17:00 - 18:30", mon: "🏃 Thể thao & 🚿 Tắm sớm (18:00)", tue: "🏃 Thể thao & 🚿 Tắm sớm", wed: "🏃 Thể thao & 🚿 Tắm sớm", thu: "🏃 Thể thao & 🚿 Tắm sớm", fri: "🏃 Thể thao & 🚿 Tắm sớm", sat: "🚿 Tắm rửa an toàn", sun: "🚿 Tắm rửa an toàn", type: "chip-sport" },
+    { slot: "18:30 - 19:30", mon: "🍱 Ăn tối cùng gia đình", tue: "🍱 Ăn tối", wed: "🍱 Ăn tối", thu: "🍱 Ăn tối", fri: "🍱 Ăn tối", sat: "🍱 Ăn tối", sun: "🍱 Ăn tối sum họp", type: "chip-meal" },
+    { slot: "19:30 - 22:30", mon: "✍️ Tự học Focus 45/5 (3 chu kỳ)", tue: "✍️ Tự học Focus 45/5", wed: "✍️ Tự học Focus 45/5", thu: "✍️ Tự học Focus 45/5", fri: "✍️ Tự học Focus 45/5", sat: "☕ Giải trí nhẹ / Đọc sách", sun: "✍️ Chuẩn bị bài tuần mới", type: "chip-study" },
+    { slot: "22:30 - 23:30", mon: "☕ Ngắt màn hình, giãn cơ & Chuẩn bị ngủ", tue: "☕ Ngắt màn hình & Thư giãn", wed: "☕ Ngắt màn hình & Thư giãn", thu: "☕ Ngắt màn hình & Thư giãn", fri: "☕ Thư giãn cuối tuần", sat: "😴 Ngủ đúng giờ", sun: "☕ Thư giãn đầu óc", type: "chip-relax" },
+    { slot: "23:30 - 06:00", mon: "😴 Ngủ sâu 7.5 giờ (Phục hồi)", tue: "😴 Ngủ sâu phục hồi", wed: "😴 Ngủ sâu phục hồi", thu: "😴 Ngủ sâu phục hồi", fri: "😴 Ngủ sâu phục hồi", sat: "😴 Ngủ sâu phục hồi", sun: "😴 Ngủ sâu phục hồi", type: "chip-sleep" }
+  ];
+
+  const advice = `
+    <strong>1. Phác đồ học tập thông minh Pomodoro 45/5:</strong> Tuyệt đối không ngồi học liên tục quá 50 phút. Mỗi 45 phút học tập trung, hãy đứng dậy nhìn ra xa 6 mét trong 20 giây và xoay nhẹ khớp cổ.<br/>
+    <strong>2. Vệ sinh an toàn & Phòng ngừa co thắt mạch:</strong> Dời lịch tắm về trước 19:30 hàng ngày. Tuyệt đối không tắm sau 21:00.<br/>
+    <strong>3. Tối ưu giấc ngủ REM:</strong> Ngắt hoàn toàn màn hình điện thoại/máy tính 30 phút trước khi ngủ (sau 22:30) để tuyến tùng giải phóng Melatonin tối đa.<br/>
+    <strong>4. Bù nước sinh học:</strong> Uống 1 ly nước ấm 250ml ngay sau khi thức dậy và duy trì 2.0L - 2.2L nước rải đều trong ngày.
+  `;
+
+  return {
+    score: score,
+    risks: risks,
+    advice: advice,
+    scheduleMatrix: optSchedule
+  };
 }
 
 /* =====================================================================
@@ -845,7 +1505,14 @@ async function submitAnalysis() {
 
   try {
     const prompt = buildMedicalPrompt();
-    const result = await callGemmaAPI(prompt);
+    let result = null;
+    try {
+      result = await callGemmaAPI(prompt);
+    } catch (apiErr) {
+      console.info('Dùng Engine Y khoa Nội bộ Cục bộ (Clinical Fallback):', apiErr.message);
+      // Use intelligent clinical rule engine
+      result = generateClinicalReport();
+    }
     renderDashboard(result);
     renderOptimizedSchedule(result.scheduleMatrix || []);
   } catch (err) {
@@ -916,9 +1583,12 @@ function renderDashboard(r) {
       ${r.advice || 'Duy trì lối sống lành mạnh, bổ sung nước và nghỉ ngơi xen kẽ.'}
     </div>
 
-    <div style="margin-top:1.5rem;text-align:center">
-      <button class="btn btn-submit" onclick="switchTab('schedule')" style="max-width:380px">
-        👉 Xem Bảng Thời Khóa Biểu Tối Ưu Đề Xuất
+    <div style="margin-top:1.5rem;display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center">
+      <button class="btn btn-submit" onclick="switchTab('schedule')" style="max-width:320px">
+        👉 Xem Bảng TKB Tối Ưu Đề Xuất
+      </button>
+      <button class="btn btn-outline" onclick="window.print()" style="max-width:200px">
+        🖨️ In Báo Cáo Y Khoa
       </button>
     </div>`;
 }
@@ -927,7 +1597,6 @@ function renderDashboard(r) {
    RENDER OPTIMIZED INTERACTIVE SCHEDULE TABLE
 ===================================================================== */
 function renderOptimizedSchedule(matrixArray) {
-  // Populate optimizedMatrix from AI response
   optimizedMatrix = {};
   TIME_SLOTS.forEach((slot, sIdx) => {
     optimizedMatrix[sIdx] = {};
@@ -958,9 +1627,12 @@ function renderOptimizedSchedule(matrixArray) {
         <h2 style="font-size:1.25rem;font-weight:800;color:var(--primary-light)">✨ Bảng Thời Khóa Biểu Tối Ưu Chuẩn Y Khoa</h2>
         <p style="color:var(--muted);font-size:.85rem">Đã tích hợp các phiên Focus 45/5, nghỉ mắt 20-20-20, giờ tắm và ngủ an toàn. Bạn có thể kéo thả hoặc nhấp để chỉnh sửa trực tiếp!</p>
       </div>
-      <div style="display:flex;gap:.5rem">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
         <button class="btn btn-outline" style="font-size:.82rem;padding:.5rem .9rem" onclick="applyOptimizedToSurvey()">
           📥 Áp dụng vào Khảo sát
+        </button>
+        <button class="btn btn-outline" style="font-size:.82rem;padding:.5rem .9rem" onclick="window.print()">
+          🖨️ In Lịch
         </button>
         <button class="btn btn-submit" style="font-size:.82rem;padding:.5rem .9rem" onclick="switchTab('focus')">
           ⏱️ Bắt đầu Focus Mode
@@ -986,7 +1658,8 @@ function renderOptimizedSchedule(matrixArray) {
           ${rowsHTML}
         </tbody>
       </table>
-    </div>`;
+    </div>
+    ${analyzeScreenTime(matrixArray)}`;
 }
 
 function applyOptimizedToSurvey() {
@@ -1028,31 +1701,440 @@ function updateTimerUI() {
 function toggleFocus() {
   focusActive = !focusActive;
   if (focusActive) {
+    if (focusMode === 'work') {
+      focusGuard.activate();
+    }
     focusInterval = setInterval(() => {
       focusTimeLeft--;
       if (focusTimeLeft <= 0) {
         if (focusMode === 'work') {
           focusMode = 'rest';
           focusTimeLeft = 5 * 60;
+          focusGuard.deactivate();
         } else {
           focusMode = 'work';
           focusTimeLeft = 45 * 60;
+          focusGuard.activate();
         }
       }
       updateTimerUI();
     }, 1000);
   } else {
     clearInterval(focusInterval);
+    focusGuard.deactivate();
   }
   updateTimerUI();
 }
 
 function resetFocus() {
   clearInterval(focusInterval);
+  focusGuard.deactivate();
   focusActive   = false;
   focusMode     = 'work';
   focusTimeLeft = 45 * 60;
   updateTimerUI();
+}
+
+/* =====================================================================
+   FLOWSINK ENGINE CLIENT (WEBSOCKET + REST LIVE INTEGRATION)
+===================================================================== */
+class FlowsinkClient {
+  constructor() {
+    this.ws = null;
+    this.pollInterval = null;
+    this.connected = false;
+    this.sessionId = null;
+    this.activeStudent = "student-001";
+    // Activity breakdown tracking
+    this.activityCounts = {
+      'classroom.google.com': { label: 'Google Classroom', color: '#6366f1', count: 0 },
+      'youtube.com':          { label: 'YouTube',          color: '#ef4444', count: 0 },
+      'facebook.com':         { label: 'Facebook / MXH',   color: '#f59e0b', count: 0 },
+      'Code.exe':             { label: 'VS Code (Dev)',     color: '#10b981', count: 0 },
+      'other':                { label: 'Khác',              color: '#64748b', count: 0 },
+    };
+  }
+
+  getHost() {
+    const input = document.getElementById('backend-host-input');
+    return input ? input.value.trim().replace(/\/$/, '') : 'http://127.0.0.1:8000';
+  }
+
+  getWsUrl() {
+    const host = this.getHost();
+    return host.replace(/^http/, 'ws') + '/ws';
+  }
+
+  connect() {
+    this.disconnect();
+    this.updateConnUI('connecting', 'Đang kết nối WebSocket...');
+    this.addLog('SYSTEM', `Đang kết nối tới ${this.getWsUrl()}...`, 'log-tag-system');
+
+    try {
+      this.ws = new WebSocket(this.getWsUrl());
+
+      this.ws.onopen = () => {
+        this.connected = true;
+        this.updateConnUI('online', 'WebSocket Trực Tuyến');
+        this.addLog('SYSTEM', 'Đã thiết lập kết nối WebSocket với Flowsink Activity Engine!', 'log-tag-decision');
+        this.syncStateAndMetrics();
+      };
+
+      this.ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          this.handleWireMessage(msg);
+        } catch(err) {
+          console.warn('WS Message parse error:', err);
+        }
+      };
+
+      this.ws.onerror = (err) => {
+        console.warn('WS Error:', err);
+      };
+
+      this.ws.onclose = () => {
+        this.connected = false;
+        this.updateConnUI('connecting', 'Polling REST API');
+        this.addLog('SYSTEM', 'WebSocket ngắt kết nối — Tự động chuyển sang chế độ Polling REST.', 'log-tag-warn');
+        this.startRestPolling();
+      };
+    } catch(err) {
+      this.startRestPolling();
+    }
+  }
+
+  disconnect() {
+    if (this.ws) {
+      try { this.ws.close(); } catch(e){}
+      this.ws = null;
+    }
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+  }
+
+  startRestPolling() {
+    if (this.pollInterval) return;
+    this.syncStateAndMetrics();
+    this.pollInterval = setInterval(() => {
+      this.syncStateAndMetrics();
+    }, 2500);
+  }
+
+  async syncStateAndMetrics() {
+    const host = this.getHost();
+    try {
+      // 1. Fetch State
+      const sRes = await fetch(`${host}/api/state`);
+      if (sRes.ok) {
+        const state = await sRes.json();
+        this.updateStateUI(state);
+        this.updateConnUI(this.connected ? 'online' : 'connecting', this.connected ? 'WebSocket Trực Tuyến' : 'REST Polling');
+      }
+
+      // 2. Fetch Metrics
+      const mRes = await fetch(`${host}/api/metrics`);
+      if (mRes.ok) {
+        const metrics = await mRes.json();
+        this.updateMetricsUI(metrics);
+      }
+
+      // 3. Fetch Session Status
+      const sessRes = await fetch(`${host}/api/session/status`);
+      if (sessRes.ok) {
+        const sess = await sessRes.json();
+        this.updateSessionUI(sess.active, sess.session_id);
+      }
+    } catch(err) {
+      if (!this.connected) {
+        this.updateConnUI('offline', 'Máy chủ Offline (Bật server.py)');
+      }
+    }
+  }
+
+  handleWireMessage(msg) {
+    const type = msg.type || '';
+    const payload = msg.payload || {};
+
+    if (type === 'hello') {
+      this.addLog('HELLO', `Máy chủ sẵn sàng. Session: ${payload.session_id || 'Chưa bắt đầu'} (${payload.ws_clients} clients)`, 'log-tag-system');
+      if (payload.state) this.updateStateUI(payload.state);
+      document.getElementById('metric-ws-val').textContent = payload.ws_clients || 1;
+    } else if (type === 'state') {
+      this.updateStateUI(payload);
+      this.addLog('STATE', `Chuyển trạng thái: ${payload.state || 'UNKNOWN'} (Risk: ${payload.risk_score || 0.0})`, payload.state === 'WARNING' || payload.state === 'BLOCKED' ? 'log-tag-warn' : 'log-tag-decision');
+    } else if (type === 'event') {
+      this.addLog('EVENT', `Sự kiện: [${payload.kind || 'unknown'}] Domain: ${payload.browser?.domain || payload.application || '—'}`, 'log-tag-event');
+    } else if (type === 'decision') {
+      this.addLog('DECISION', `Đánh giá chính sách: ${payload.outcome || ''} Hành động: ${JSON.stringify(payload.action_types || [])}`, 'log-tag-decision');
+    } else if (type === 'action') {
+      this.addLog('ACTION', `Thực thi: ${payload.action || ''} -> ${payload.status || ''}`, 'log-tag-block');
+    }
+    this.syncStateAndMetrics();
+  }
+
+  updateConnUI(status, text) {
+    const dot = document.getElementById('monitor-conn-dot');
+    const label = document.getElementById('monitor-conn-text');
+    const hDot = document.getElementById('header-server-dot');
+    const hText = document.getElementById('header-server-text');
+
+    const dotClass = status === 'online' ? 'dot-online' : status === 'connecting' ? 'dot-connecting' : 'dot-offline';
+
+    if (dot) dot.className = `status-dot ${dotClass}`;
+    if (label) label.textContent = text;
+    if (hDot) hDot.className = `status-dot ${dotClass}`;
+    if (hText) hText.textContent = `Engine: ${text}`;
+  }
+
+  updateStateUI(state) {
+    const hero = document.getElementById('state-hero-box');
+    const badge = document.getElementById('state-badge-text');
+    const desc = document.getElementById('state-desc-text');
+    const procText = document.getElementById('live-process-text');
+    const domText = document.getElementById('live-domain-text');
+    const riskText = document.getElementById('risk-score-text');
+    const riskBar = document.getElementById('risk-score-bar');
+
+    if (!hero || !state) return;
+
+    const st = state.state || 'UNKNOWN';
+    badge.textContent = st;
+
+    // Reset state classes
+    hero.className = `state-hero state-${st}`;
+
+    const descMap = {
+      ALLOWED: '✅ Hoạt động học tập hợp lệ và được cho phép.',
+      FOCUS: '🎯 Đang trong chế độ tập trung cao độ (Focus Session).',
+      WARNING: '⚠️ Cảnh báo: Phát hiện ứng dụng / trang web giải trí!',
+      BLOCKED: '🚫 Đã chặn truy cập trang web / phần mềm vi phạm!',
+      RESTRICTED: '⛔ Thiết bị đang bị giới hạn do vi phạm nhiều lần.',
+      BEDTIME: '🌙 Đã đến giờ đi ngủ (Chế độ ngắt thiết bị).',
+      UNKNOWN: 'Hệ thống đang ở trạng thái chờ telemetry.'
+    };
+    desc.textContent = descMap[st] || 'Trạng thái giám sát hiện tại.';
+
+    procText.textContent = state.application || '—';
+    domText.textContent = state.domain || '—';
+
+    const risk = typeof state.risk_score === 'number' ? state.risk_score : 0.0;
+    riskText.textContent = `${risk.toFixed(2)} / 1.0`;
+    riskBar.style.width = `${Math.min(100, Math.round(risk * 100))}%`;
+    riskBar.style.backgroundColor = risk >= 0.7 ? 'var(--danger)' : risk >= 0.4 ? 'var(--warning)' : 'var(--success)';
+
+    if (typeof focusGuard !== 'undefined' && focusGuard) {
+      focusGuard.onStateChange(state);
+    }
+  }
+
+  updateMetricsUI(metrics) {
+    if (!metrics) return;
+    const ee = metrics.event_engine || {};
+    const pe = metrics.policy_engine || {};
+
+    const evVal = document.getElementById('metric-events-val');
+    const violVal = document.getElementById('metric-violations-val');
+    const warnVal = document.getElementById('metric-warnings-val');
+
+    if (evVal) evVal.textContent = ee.events_processed ?? ee.events_received ?? 0;
+    if (violVal) violVal.textContent = pe.policy_violations ?? 0;
+    if (warnVal) warnVal.textContent = pe.warnings ?? 0;
+  }
+
+  updateActivityChart(domainOrProcess) {
+    // Update activity counts
+    let matched = false;
+    for (const key of Object.keys(this.activityCounts)) {
+      if (key !== 'other' && (domainOrProcess || '').includes(key)) {
+        this.activityCounts[key].count++;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched && domainOrProcess) {
+      this.activityCounts['other'].count++;
+    }
+    this.renderActivityChart();
+  }
+
+  renderActivityChart() {
+    const chartEl = document.getElementById('activity-chart');
+    const totalEl = document.getElementById('chart-total-label');
+    if (!chartEl) return;
+
+    const entries = Object.values(this.activityCounts).filter(v => v.count > 0);
+    const total = entries.reduce((s, v) => s + v.count, 0);
+
+    if (total === 0) return; // Keep placeholder
+    if (totalEl) totalEl.textContent = `Tổng: ${total} sự kiện`;
+
+    // Sort by count desc
+    entries.sort((a, b) => b.count - a.count);
+    const max = entries[0].count;
+
+    chartEl.innerHTML = entries.map(v => `
+      <div class="act-row">
+        <div class="act-label" title="${v.label}">${v.label}</div>
+        <div class="act-bar-track">
+          <div class="act-bar-fill" style="width:${Math.round(v.count / max * 100)}%;background:${v.color}"></div>
+        </div>
+        <div class="act-val">${v.count}</div>
+      </div>
+    `).join('');
+  }
+
+  updateSessionUI(active, sessionId) {
+    const btn = document.getElementById('btn-session-toggle');
+    const ind = document.getElementById('monitor-session-indicator');
+    this.sessionId = sessionId;
+
+    if (active && sessionId) {
+      if (btn) {
+        btn.textContent = '⏹ Kết thúc phiên';
+        btn.className = 'btn btn-outline';
+      }
+      if (ind) ind.innerHTML = `<span style="color:var(--success)">● Phiên: ${sessionId.slice(0, 8)}...</span>`;
+    } else {
+      if (btn) {
+        btn.textContent = '▶ Bắt đầu phiên';
+        btn.className = 'btn btn-submit';
+      }
+      if (ind) ind.textContent = 'Phiên: Chưa kích hoạt';
+    }
+  }
+
+  async toggleSession() {
+    const host = this.getHost();
+    const studentId = document.getElementById('monitor-student-id').value.trim() || 'student-001';
+
+    if (!this.sessionId) {
+      try {
+        const res = await fetch(`${host}/api/session/start?student_id=${encodeURIComponent(studentId)}`, { method: 'POST' });
+        const data = await res.json();
+        this.sessionId = data.session_id;
+        this.updateSessionUI(true, data.session_id);
+        this.addLog('SESSION', `Đã bắt đầu phiên giám sát mới [${data.session_id}] cho ${studentId}`, 'log-tag-decision');
+      } catch(err) {
+        alert('Không thể kết nối Backend để bắt đầu phiên: ' + err.message);
+      }
+    } else {
+      try {
+        await fetch(`${host}/api/session/end`, { method: 'POST' });
+        this.addLog('SESSION', `Đã kết thúc phiên [${this.sessionId}]`, 'log-tag-system');
+        this.sessionId = null;
+        this.updateSessionUI(false, null);
+      } catch(err) {
+        alert('Không thể kết thúc phiên: ' + err.message);
+      }
+    }
+    this.syncStateAndMetrics();
+  }
+
+  async sendTelemetry(payload) {
+    const host = this.getHost();
+    this.addLog('SEND', `Đang phát telemetry giả lập [${payload.kind || payload.event_type}]...`, 'log-tag-event');
+
+    // Track activity for chart
+    const domain = payload.browser?.domain || null;
+    const process = payload.process?.process || null;
+    this.updateActivityChart(domain || process);
+
+    if (this.ws && this.connected) {
+      this.ws.send(JSON.stringify({ type: 'telemetry', payload: payload }));
+    } else {
+      try {
+        await fetch(`${host}/api/telemetry`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch(err) {
+        console.warn('Telemetry POST failed:', err);
+      }
+    }
+    setTimeout(() => this.syncStateAndMetrics(), 300);
+  }
+
+  addLog(tag, text, tagClass) {
+    const box = document.getElementById('terminal-log-box');
+    if (!box) return;
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+
+    const row = document.createElement('div');
+    row.className = 'terminal-row';
+    row.innerHTML = `
+      <span class="log-ts">[${timeStr}]</span>
+      <span class="log-tag ${tagClass || 'log-tag-system'}">${tag}</span>
+      <span>${text}</span>
+    `;
+    box.appendChild(row);
+
+    const autoScroll = document.getElementById('auto-scroll-log');
+    if (autoScroll && autoScroll.checked) {
+      box.scrollTop = box.scrollHeight;
+    }
+  }
+}
+
+const engineClient = new FlowsinkClient();
+
+function reconnectEngine() {
+  engineClient.connect();
+}
+
+function toggleMonitoringSession() {
+  engineClient.toggleSession();
+}
+
+function clearEventLogs() {
+  const box = document.getElementById('terminal-log-box');
+  if (box) box.innerHTML = '';
+  engineClient.addLog('SYSTEM', 'Đã xóa trắng nhật ký sự kiện.', 'log-tag-system');
+}
+
+function simulateEvent(preset) {
+  if (preset === 'classroom') {
+    engineClient.sendTelemetry({
+      kind: 'browser_navigation',
+      browser: { domain: 'classroom.google.com', tab_id: 'tab-101', title: 'Google Classroom — Lớp 12A1' }
+    });
+  } else if (preset === 'vscode') {
+    engineClient.sendTelemetry({
+      kind: 'process_foreground',
+      process: { process: 'Code.exe', name: 'Code.exe', window_title: 'index.html - Flowsink (Workspace)' }
+    });
+  } else if (preset === 'youtube') {
+    engineClient.sendTelemetry({
+      kind: 'browser_navigation',
+      browser: { domain: 'youtube.com', tab_id: 'tab-102', title: 'YouTube Gaming Live Stream' }
+    });
+  } else if (preset === 'discord') {
+    engineClient.sendTelemetry({
+      kind: 'browser_navigation',
+      browser: { domain: 'facebook.com', tab_id: 'tab-103', title: 'Facebook Newsfeed' }
+    });
+  }
+}
+
+async function triggerHostScreenshot() {
+  const host = engineClient.getHost();
+  engineClient.addLog('SCREENSHOT', 'Đang yêu cầu máy chủ chụp ảnh màn hình host (mss / GDI)...', 'log-tag-warn');
+  try {
+    const res = await fetch(`${host}/api/screenshot`, { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'success') {
+      engineClient.addLog('SCREENSHOT', `✅ Đã lưu ảnh chụp: ${data.filename || data.path}`, 'log-tag-decision');
+      alert(`📸 Đã chụp màn hình Host thành công!\nFile: ${data.filename || data.path}`);
+    } else {
+      engineClient.addLog('SCREENSHOT', `⚠️ Không thể chụp ảnh: ${data.detail || 'Lỗi'}`, 'log-tag-warn');
+    }
+  } catch(err) {
+    engineClient.addLog('SCREENSHOT', `❌ Lỗi kết nối API screenshot: ${err.message}`, 'log-tag-block');
+  }
 }
 
 /* =====================================================================
@@ -1062,7 +2144,692 @@ window.onload = function() {
   initTimetable();
   loadPreset('standard'); // Pre-populate with realistic standard student schedule
   updateTimerUI();
+  engineClient.connect(); // Start background websocket/REST live bridge
 };
+
+/* =====================================================================
+   FOCUS GUARD — Real-time monitoring during Focus Mode
+===================================================================== */
+class FocusGuard {
+  constructor() {
+    this.active = false;
+    this._countdownTimer = null;
+    this._countdownVal = 30;
+    this._lastAlertDomain = null;
+    this._alertShowing = false;
+    this.violationCount = 0;
+
+    // Periodic & Tab Change Monitoring handles
+    this._randomCheckTimer = null;
+    this._tabSwitchCheckTimer = null;  // 10s grace period timer
+    this._tabFollowUpTimer = null;     // 10-15min follow-up timer
+    this._boundVisibilityHandler = null;
+    this._boundBlurHandler = null;
+
+    // Domains WHITELIST — always allowed during Focus (expanded)
+    this.educationalDomains = [
+      // Google suite
+      'google.com', 'www.google.com', 'gemini.google.com',
+      'translate.google.com', 'search.google.com',
+      'classroom.google.com', 'meet.google.com', 'docs.google.com',
+      'drive.google.com', 'slides.google.com', 'forms.google.com',
+      'sheets.google.com', 'sites.google.com', 'jamboard.google.com',
+      // AI tools
+      'bard.google.com', 'aistudio.google.com', 'chatgpt.com', 'openai.com',
+      'claude.ai', 'perplexity.ai', 'copilot.microsoft.com',
+      // Learning platforms
+      'kahoot.com', 'kahoot.it', 'quizlet.com', 'khanacademy.org',
+      'coursera.org', 'edx.org', 'udemy.com', 'skillshare.com',
+      // Dev tools
+      'github.com', 'stackoverflow.com', 'developer.mozilla.org',
+      'w3schools.com', 'leetcode.com', 'hackerrank.com', 'codepen.io',
+      'replit.com', 'codesandbox.io', 'jsfiddle.net',
+      // Vietnamese edu
+      'hoc10.vn', 'violet.vn', 'vndoc.com', 'hoc247.net', 'loigiaihay.com',
+      'vietjack.com', 'toanhoc.org', 'toanmath.com',
+      // Dictionaries & reference
+      'dict.vn', 'tratu.coviet.vn', 'vdict.vn', 'tracau.vn',
+      'cambridge.org', 'merriam-webster.com', 'dictionary.cambridge.org',
+      'en.wiktionary.org', 'vn.wiktionary.org',
+      // Encyclopedia & science
+      'wikipedia.org', 'britannica.com', 'wolframalpha.com',
+      'scholar.google.com', 'sciencedirect.com',
+      // Math & tools
+      'desmos.com', 'geogebra.org', 'mathway.com',
+      // Notes & productivity
+      'notion.so', 'evernote.com', 'obsidian.md',
+      // Local
+      'localhost', '127.0.0.1',
+    ];
+
+    // Domains BLOCKLIST — clearly NOT study (no AI analysis, instant block)
+    this.blockedDomains = [
+      // Social media
+      'tiktok.com', 'instagram.com', 'facebook.com', 'fb.com',
+      'twitter.com', 'x.com', 'snapchat.com', 'pinterest.com',
+      // Entertainment/gaming
+      'netflix.com', 'twitch.tv', 'primevideo.com', 'disneyplus.com',
+      'steam.com', 'epicgames.com', 'roblox.com', 'miniclip.com', 'friv.com',
+      // Shopping
+      'shopee.vn', 'lazada.vn', 'tiki.vn',
+      // Messaging (non-work)
+      'zalo.me', 'messenger.com',
+      // Reddit (entertainment)
+      'reddit.com',
+    ];
+    // NOTE: youtube.com, discord.com removed from blocklist — AI will analyze
+    // YouTube can be educational (tutorials, lectures, dictionaries)
+  }
+
+  activate() {
+    this.active = true;
+    if (engineClient) {
+      engineClient.addLog('GUARD', '🛡️ Focus Guard đã kích hoạt — Giám sát nền (Đổi tab→10s chụp ảnh phân tích & Kiểm tra 10-15p).', 'log-tag-decision');
+    }
+
+    // 1. Attach tab switch / window blur listeners
+    this._attachTabListeners();
+
+    // 2. Schedule random 10-15 min background sampling
+    this._scheduleRandomBackgroundCheck();
+
+    // Update status UI
+    const statusEl = document.getElementById('focus-guard-status-text');
+    if (statusEl) {
+      statusEl.textContent = '🔥 Đang giám sát trực tiếp (Đổi tab → 10s chụp ảnh AI phân tích | Kiểm tra ngẫu nhiên 10-15p)';
+      statusEl.style.color = 'var(--success)';
+    }
+    console.info('[FocusGuard] Activated: 10s tab-switch delay + 10-15m random sampling');
+  }
+
+  deactivate() {
+    this.active = false;
+    this._stopCountdown();
+    this._stopRandomCheck();
+    this._stopTabSwitchTimer();
+    this._stopTabFollowUpTimer();
+    this._detachTabListeners();
+    this.hideOverlay();
+
+    const statusEl = document.getElementById('focus-guard-status-text');
+    if (statusEl) {
+      statusEl.textContent = 'Sẵn sàng (Tự động phát hiện chuyển tab → chụp ảnh sau 10s | Kiểm tra 10-15 phút)';
+      statusEl.style.color = 'var(--muted)';
+    }
+    console.info('[FocusGuard] Deactivated');
+  }
+
+  isEducational(domain) {
+    if (!domain) return true; // no domain = allow (process-based)
+    const d = domain.toLowerCase().trim();
+    for (const edu of this.educationalDomains) {
+      if (d === edu || d.endsWith('.' + edu) || d.includes(edu)) return true;
+    }
+    return false;
+  }
+
+  isBlocked(domain) {
+    if (!domain) return false;
+    const d = domain.toLowerCase().trim();
+    for (const blk of this.blockedDomains) {
+      if (d === blk || d.endsWith('.' + blk) || d.includes(blk)) return true;
+    }
+    return false;
+  }
+
+  onStateChange(state) {
+    if (!this.active || focusMode !== 'work' || !focusActive) return;
+    const domain = state.domain || null;
+    const stateVal = state.state || 'UNKNOWN';
+
+    // Trigger alert when engine says WARNING or BLOCKED and we're in focus work mode
+    if ((stateVal === 'WARNING' || stateVal === 'BLOCKED') && domain && !this._alertShowing) {
+      if (!this.isEducational(domain)) {
+        this.triggerAlert(domain, stateVal);
+      }
+    }
+  }
+
+  async triggerAlert(domain, stateVal) {
+    if (this._alertShowing) return;
+    this._alertShowing = true;
+    this._lastAlertDomain = domain;
+    this.violationCount++;
+
+    // 🔔 Play alert bell sound immediately
+    this._playAlertSound();
+
+    // Show overlay
+    const overlay = document.getElementById('focus-guard-overlay');
+    if (overlay) overlay.style.display = 'flex';
+
+    // Set domain text
+    const domainEl = document.getElementById('guard-domain-text');
+    if (domainEl) domainEl.textContent = `🌐 ${domain}`;
+
+    // Reset verdict
+    const verdictEl = document.getElementById('guard-verdict-box');
+    if (verdictEl) {
+      verdictEl.className = 'guard-verdict verdict-loading';
+      verdictEl.textContent = '🧠 Đang phân tích trang web này bằng AI...';
+    }
+
+    // Screenshot
+    const ssEl = document.getElementById('guard-screenshot-status');
+    if (ssEl) ssEl.textContent = '📸 Đang chụp màn hình bằng chứng...';
+    this._takeScreenshot(ssEl);
+
+    // AI analysis (async, update when done — plays extra sound if violation confirmed)
+    this._analyzeWithAI(domain, verdictEl);
+
+    // Log to violation log panel + terminal
+    this._logViolation(domain, stateVal);
+
+    // Start countdown
+    this._startCountdown();
+  }
+
+  async _takeScreenshot(ssEl) {
+    try {
+      const host = engineClient ? engineClient.getHost() : 'http://127.0.0.1:8000';
+      const res = await fetch(`${host}/api/screenshot`, { method: 'POST' });
+      const data = await res.json();
+      if (ssEl) {
+        ssEl.textContent = data.status === 'success'
+          ? `📸 Đã chụp ảnh bằng chứng: ${data.filename || 'screenshot.png'}`
+          : '⚠️ Không thể chụp ảnh (chế độ giả lập)';
+      }
+    } catch(e) {
+      if (ssEl) ssEl.textContent = '⚠️ Chụp ảnh không khả dụng (backend offline)';
+    }
+  }
+
+  async _analyzeWithAI(domain, verdictEl) {
+    // First: quick local check
+    const isEdu = this.isEducational(domain);
+    const isBlk = this.isBlocked(domain);
+
+    if (isBlk) {
+      if (verdictEl) {
+        verdictEl.className = 'guard-verdict verdict-bad';
+        verdictEl.innerHTML = `❌ <strong>KHÔNG PHẢI trang học tập</strong><br><span style="font-size:.82rem">Đây là trang giải trí / mạng xã hội — Vi phạm chính sách tập trung!</span>`;
+      }
+      return;
+    }
+
+    // Use Gemini AI to classify the domain
+    try {
+      const key = localStorage.getItem('gemini_api_key') || 'AQ.Ab8RN6ISX24IFm4MPFaEhb-KEbhVNWv1wSlK6RC7TC1hYnWflQ';
+      const prompt = `Phân tích domain này: "${domain}". 
+Đây có phải trang web phục vụ học tập / nghiên cứu / làm việc không?
+Trả lời JSON: {"isEducational": true/false, "category": "string", "reason": "string (ngắn gọn, tiếng Việt)"}`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        { method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json' } }),
+          signal: AbortSignal.timeout(8000) }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        const json = JSON.parse(text.replace(/```json|```/gi,'').trim().match(/\{[\s\S]*\}/)?.[0] || '{}');
+
+        if (verdictEl) {
+          if (json.isEducational) {
+            verdictEl.className = 'guard-verdict verdict-good';
+            verdictEl.innerHTML = `✅ <strong>Trang học tập hợp lệ</strong> — ${json.category || ''}<br><span style="font-size:.82rem">${json.reason || ''}</span>`;
+            // Auto-dismiss if educational
+            setTimeout(() => this.returnToFocus(), 2000);
+          } else {
+            verdictEl.className = 'guard-verdict verdict-bad';
+            verdictEl.innerHTML = `❌ <strong>KHÔNG phải trang học tập</strong> — ${json.category || ''}<br><span style="font-size:.82rem">${json.reason || 'Không liên quan đến học tập'}</span>`;
+          }
+        }
+        return;
+      }
+    } catch(e) {
+      console.warn('[FocusGuard] AI analysis failed:', e.message);
+    }
+
+    // Fallback local verdict
+    if (verdictEl) {
+      verdictEl.className = 'guard-verdict verdict-bad';
+      verdictEl.innerHTML = `⚠️ <strong>Cảnh báo</strong>: Domain "<em>${domain}</em>" không nằm trong danh sách trang học tập được phép.<br><span style="font-size:.82rem">Hãy quay lại trang học để tiếp tục phiên Focus!</span>`;
+    }
+  }
+
+  _startCountdown() {
+    this._countdownVal = 30;
+    this._stopCountdown();
+    const el = document.getElementById('guard-countdown');
+    this._countdownTimer = setInterval(() => {
+      this._countdownVal--;
+      if (el) {
+        el.textContent = this._countdownVal;
+        if (this._countdownVal <= 10) el.classList.add('urgent');
+        else el.classList.remove('urgent');
+      }
+      if (this._countdownVal <= 0) {
+        this._stopCountdown();
+        this.dismissAndStop(); // Auto-stop focus after countdown
+      }
+    }, 1000);
+  }
+
+  _stopCountdown() {
+    if (this._countdownTimer) {
+      clearInterval(this._countdownTimer);
+      this._countdownTimer = null;
+    }
+  }
+
+  _logViolation(domain, stateVal) {
+    const now = new Date().toTimeString().slice(0,8);
+    const listEl = document.getElementById('violation-log-list');
+    if (listEl) {
+      // Clear empty message
+      if (listEl.textContent.includes('Chưa có vi phạm')) listEl.innerHTML = '';
+      const item = document.createElement('div');
+      item.className = 'violation-item';
+      item.innerHTML = `
+        <span class="violation-badge">VI PHẠM #${this.violationCount}</span>
+        <span class="violation-domain">🌐 ${domain}</span>
+        <span style="color:var(--muted);font-size:.8rem">Trạng thái: ${stateVal}</span>
+        <span class="violation-time">${now}</span>
+      `;
+      listEl.appendChild(item);
+    }
+    // Log to terminal stream
+    if (engineClient) {
+      engineClient.addLog('🚨 GUARD', `Vi phạm Focus Mode: ${domain} (${stateVal}) — Cảnh báo đã gửi!`, 'log-tag-block');
+    }
+  }
+
+  hideOverlay() {
+    const overlay = document.getElementById('focus-guard-overlay');
+    if (overlay) overlay.style.display = 'none';
+    this._alertShowing = false;
+  }
+
+  returnToFocus() {
+    this._stopCountdown();
+    this.hideOverlay();
+    // Send classroom telemetry to reset state
+    if (engineClient) {
+      engineClient.sendTelemetry({
+        kind: 'browser_navigation',
+        browser: { domain: 'classroom.google.com', tab_id: 'tab-focus-return', title: 'Quay lại học — Focus Mode' }
+      });
+      engineClient.addLog('GUARD', '✅ Học sinh đã quay lại trang học — Tiếp tục Focus Mode!', 'log-tag-decision');
+    }
+  }
+
+  dismissAndStop() {
+    this._stopCountdown();
+    this.hideOverlay();
+    this.deactivate();
+    resetFocus(); // Stop the Focus Mode timer
+    if (engineClient) {
+      engineClient.addLog('GUARD', '⏹ Focus Mode bị dừng do vi phạm tập trung.', 'log-tag-warn');
+    }
+  }
+
+  // ===================================================================
+  // TAB SWITCH DETECTION — visibilitychange only (more reliable than blur)
+  // ===================================================================
+  _attachTabListeners() {
+    this._detachTabListeners();
+
+    this._boundVisibilityHandler = () => {
+      if (!this.active || focusMode !== 'work' || !focusActive) return;
+
+      if (document.hidden) {
+        // Student just left the Focus tab
+        this._onTabHidden();
+      } else {
+        // Student returned to the Focus tab
+        this._onTabVisible();
+      }
+    };
+
+    document.addEventListener('visibilitychange', this._boundVisibilityHandler);
+  }
+
+  _detachTabListeners() {
+    if (this._boundVisibilityHandler) {
+      document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
+      this._boundVisibilityHandler = null;
+    }
+    if (this._boundBlurHandler) {
+      window.removeEventListener('blur', this._boundBlurHandler);
+      this._boundBlurHandler = null;
+    }
+  }
+
+  // Hủy timer 10s chuyển tab
+  _stopTabSwitchTimer() {
+    if (this._tabSwitchCheckTimer) { clearTimeout(this._tabSwitchCheckTimer); this._tabSwitchCheckTimer = null; }
+  }
+  _stopTabFollowUpTimer() {
+    if (this._tabFollowUpTimer) { clearTimeout(this._tabFollowUpTimer); this._tabFollowUpTimer = null; }
+  }
+
+  // Called when student LEAVES the Focus tab
+  _onTabHidden() {
+    if (this._tabSwitchCheckTimer) return; // Already counting, ignore
+    if (this._alertShowing) return;
+
+    if (engineClient) {
+      engineClient.addLog('👁️ TAB_DETECT', 'Phát hiện rời khỏi trang Focus — Sẽ chụp ảnh & phân tích sau 10 giây nếu không quay lại...', 'log-tag-warn');
+    }
+
+    this._tabSwitchCheckTimer = setTimeout(async () => {
+      this._tabSwitchCheckTimer = null;
+
+      // Only proceed if student is still away AND guard is active
+      if (!this.active || !focusActive || !document.hidden) return;
+
+      if (engineClient) {
+        engineClient.addLog('📸 TAB_10S', 'Đã 10 giây rời khỏi trang Focus — Chụp ảnh màn hình & phân tích AI...', 'log-tag-warn');
+      }
+
+      // Screenshot first as evidence
+      await this._takeScreenshot(null);
+
+      // Try to get current domain from backend (may be stale, that's ok)
+      let domain = null;
+      try {
+        const host = engineClient ? engineClient.getHost() : 'http://127.0.0.1:8000';
+        const sRes = await fetch(`${host}/api/state`, { signal: AbortSignal.timeout(3000) });
+        if (sRes.ok) { const s = await sRes.json(); domain = s.domain || null; }
+      } catch(e) {}
+
+      // === KEY LOGIC: ALWAYS trigger alert after 10s ===
+      // The overlay AI will analyze and may auto-dismiss if educational
+      const displayDomain = (domain && domain !== 'classroom.google.com') ? domain : 'Tab ngoài Focus Mode';
+      this.triggerAlert(displayDomain, 'TAB_SWITCH_10S');
+
+    }, 10000); // 10 second grace period
+  }
+
+  // Called when student RETURNS to the Focus tab
+  _onTabVisible() {
+    if (this._tabSwitchCheckTimer) {
+      // Student came back before 10s — cancel the check
+      clearTimeout(this._tabSwitchCheckTimer);
+      this._tabSwitchCheckTimer = null;
+      if (engineClient) {
+        engineClient.addLog('TAB_DETECT', '↩️ Quay lại trang Focus trong 10 giây — Không cảnh báo.', 'log-tag-system');
+      }
+    }
+  }
+
+  // Legacy handler still used by onStateChange path
+  async _handleTabOrWindowSwitch(reason) {
+    this._onTabHidden();
+  }
+
+  // Quick AI domain check (returns true/false)
+  async _quickAICheck(domain) {
+    try {
+      const key = localStorage.getItem('gemini_api_key') || 'AQ.Ab8RN6ISX24IFm4MPFaEhb-KEbhVNWv1wSlK6RC7TC1hYnWflQ';
+      const prompt = `Domain: "${domain}"\nĐây có phải trang web học tập / tra cứu / công cụ học sinh dùng không (Google Search, YouTube tutorial, Gemini AI, từ điển...)?\nTrả lời JSON: {"isEducational": true/false, "reason": "ngắn gọn tiếng Việt"}`;
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        { method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json' } }),
+          signal: AbortSignal.timeout(8000) }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+        const json = JSON.parse(text.replace(/```json|```/gi,'').trim().match(/\{[\s\S]*\}/)?.[0] || '{}');
+        if (engineClient) {
+          engineClient.addLog('AI_CHECK', `🧠 ${domain}: ${json.isEducational ? '✅ Học tập' : '❌ Vi phạm'} — ${json.reason || ''}`, 'log-tag-event');
+        }
+        return json.isEducational === true;
+      }
+    } catch(e) { console.warn('[FocusGuard] Quick AI check failed:', e.message); }
+    return false;
+  }
+
+  // Schedule follow-up check 10-15 minutes after a tab switch was approved
+  _scheduleTabFollowUpCheck() {
+    this._stopTabFollowUpTimer();
+    if (!this.active || focusMode !== 'work') return;
+
+    const minMs = 10 * 60 * 1000; // 10 min
+    const maxMs = 15 * 60 * 1000; // 15 min
+    const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+    const mins = (delay / 60000).toFixed(1);
+
+    if (engineClient) {
+      engineClient.addLog('GUARD', `🕐 Sẽ kiểm tra lại sau ${mins} phút để giám sát trang web đang học...`, 'log-tag-system');
+    }
+    this._tabFollowUpTimer = setTimeout(async () => {
+      if (!this.active || !focusActive) return;
+      if (engineClient) {
+        engineClient.addLog('📸 FOLLOW_UP', `Kiểm tra ${mins}p sau lần duyệt tab — Đang chụp ảnh & phân tích nội dung...`, 'log-tag-warn');
+      }
+      await this.performRandomBackgroundCheck();
+    }, delay);
+  }
+
+  // ===================================================================
+  // PERIODIC RANDOM SCREENSHOT & AI ANALYSIS (10 - 15 MINUTES)
+  // ===================================================================
+  _scheduleRandomBackgroundCheck() {
+    this._stopRandomCheck();
+    if (!this.active || focusMode !== 'work') return;
+
+    // Random interval between 10 min and 15 min
+    const minMs = 10 * 60 * 1000;
+    const maxMs = 15 * 60 * 1000;
+    const randomDelay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+    const minutesFormatted = (randomDelay / 60000).toFixed(1);
+
+    if (engineClient) {
+      engineClient.addLog('GUARD', `⏱️ Kiểm tra nền ngẫu nhiên kế tiếp sau ${minutesFormatted} phút...`, 'log-tag-system');
+    }
+    this._randomCheckTimer = setTimeout(() => { this.performRandomBackgroundCheck(); }, randomDelay);
+  }
+
+  _stopRandomCheck() {
+    if (this._randomCheckTimer) { clearTimeout(this._randomCheckTimer); this._randomCheckTimer = null; }
+  }
+
+  async performRandomBackgroundCheck() {
+    if (!this.active || focusMode !== 'work' || !focusActive) return;
+
+    if (engineClient) {
+      engineClient.addLog('📸 SAMPLING', 'Kiểm tra định kỳ ngẫu nhiên — Chụp ảnh màn hình & phân tích nội dung AI...', 'log-tag-warn');
+    }
+
+    // 1. Take host screenshot
+    try {
+      const host = engineClient ? engineClient.getHost() : 'http://127.0.0.1:8000';
+      const res = await fetch(`${host}/api/screenshot`, { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'success' && engineClient) {
+        engineClient.addLog('SAMPLING', `✅ Đã chụp màn hình: ${data.filename || 'screenshot.png'}`, 'log-tag-decision');
+      }
+    } catch(err) { console.warn('[FocusGuard] Background screenshot failed:', err); }
+
+    // 2. Fetch latest telemetry state
+    let domain = null;
+    try {
+      const host = engineClient ? engineClient.getHost() : 'http://127.0.0.1:8000';
+      const sRes = await fetch(`${host}/api/state`);
+      if (sRes.ok) { const state = await sRes.json(); domain = state.domain || null; }
+    } catch(e) {}
+
+    if (domain && !this.isEducational(domain)) {
+      const isBlk = this.isBlocked(domain);
+      if (isBlk) {
+        this.triggerAlert(domain, 'SAMPLING_VIOLATION');
+        return;
+      }
+      // AI check for ambiguous domains
+      const isAiEdu = await this._quickAICheck(domain);
+      if (!isAiEdu) {
+        this.triggerAlert(domain, 'SAMPLING_VIOLATION');
+        return;
+      }
+    }
+
+    // All clear — reschedule next check
+    if (engineClient) {
+      engineClient.addLog('SAMPLING', '✅ Kiểm tra ngẫu nhiên OK — Nội dung hợp lệ. Lên lịch kiểm tra tiếp theo...', 'log-tag-decision');
+    }
+    this._scheduleRandomBackgroundCheck();
+  }
+
+  // ===================================================================
+  // ALERT SOUND — Web Audio API bell
+  // ===================================================================
+  _playAlertSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // Play 3 bell tones: descending A5 → A4
+      [0, 0.35, 0.7].forEach((delay, i) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        // Freq: 880 → 660 → 880 (ding-dong-ding)
+        const freqs = [880, 660, 880];
+        osc.frequency.setValueAtTime(freqs[i], ctx.currentTime + delay);
+        osc.frequency.exponentialRampToValueAtTime(freqs[i] * 0.5, ctx.currentTime + delay + 0.4);
+        gain.gain.setValueAtTime(0.6, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.45);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.5);
+      });
+    } catch(e) {
+      console.warn('[FocusGuard] Audio alert failed:', e);
+    }
+  }
+
+  triggerRandomCheckDemo() {
+    if (!this.active || focusMode !== 'work') {
+      alert('ℹ️ Hãy nhấn "▶ Bắt đầu" Focus Mode trước để kích hoạt tính năng giám sát!');
+      return;
+    }
+    this.performRandomBackgroundCheck();
+  }
+}
+
+const focusGuard = new FocusGuard();
+
+/* =====================================================================
+   SCREEN TIME ADVISOR — Analyze screen hours and generate health plan
+===================================================================== */
+// Duration in hours for each TIME_SLOT
+const SLOT_DURATIONS_H = [1, 1, 3.5, 1.5, 3.5, 1.5, 1, 3, 1, 6.5];
+// Chips that count as "screen time" (on-screen activity)
+const SCREEN_CHIP_TYPES = ['chip-work', 'chip-study', 'chip-screen'];
+
+function analyzeScreenTime(matrixArray) {
+  const DAY_NAMES_SHORT = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  const dayScreenHours = {}; // day -> hours
+
+  DAYS.forEach((day, dIdx) => {
+    let totalH = 0;
+    matrixArray.forEach((row, sIdx) => {
+      const chipType = row.type || '';
+      if (SCREEN_CHIP_TYPES.includes(chipType)) {
+        totalH += SLOT_DURATIONS_H[sIdx] || 1;
+      }
+    });
+    dayScreenHours[day] = parseFloat(totalH.toFixed(1));
+  });
+
+  const allHours = Object.values(dayScreenHours);
+  const maxH = Math.max(...allHours, 1);
+  const avgH = (allHours.reduce((a,b) => a+b, 0) / 7).toFixed(1);
+  const totalWeekH = allHours.reduce((a,b) => a+b, 0).toFixed(1);
+
+  // Build bar chart HTML
+  const barsHTML = DAYS.map((day, i) => {
+    const h = dayScreenHours[day];
+    const pct = Math.round(h / maxH * 100);
+    const barClass = h >= 8 ? 'st-bar-danger' : h >= 5 ? 'st-bar-warn' : 'st-bar-safe';
+    return `
+      <div class="screentime-bar-row">
+        <div class="st-day-label">${DAY_NAMES_SHORT[i]}</div>
+        <div class="st-bar-track">
+          <div class="st-bar-fill ${barClass}" style="width:${pct}%">${h > 1.5 ? h+'h' : ''}</div>
+        </div>
+        <div class="st-val">${h}h</div>
+      </div>`;
+  }).join('');
+
+  // Generate health protection plan based on hours
+  const plans = [];
+  const dailyBreaksNeeded = Math.ceil(maxH / 0.75); // 1 eye break per 45min
+
+  plans.push({
+    icon: '👁️', badge: 'hp-badge-eye', label: `Nghỉ mắt 20-20-20 (${dailyBreaksNeeded} lần/ngày)`,
+    detail: `Mỗi 45 phút học: nhìn ra xa 6m trong 20 giây, chớp mắt 20 lần. Giảm nguy cơ khô mắt và cận thị tiến triển.`
+  });
+
+  const waterCups = Math.max(8, Math.ceil(parseFloat(avgH) * 1.5));
+  plans.push({
+    icon: '💧', badge: 'hp-badge-water', label: `Uống ${waterCups} ly nước/ngày (200ml/ly)`,
+    detail: `Uống 1 ly nước mỗi giờ học. Mất nước nhẹ 1-2% làm giảm 15% lưu lượng máu não, gây đau đầu và mất tập trung.`
+  });
+
+  const stretchSessions = Math.ceil(parseFloat(avgH) / 2);
+  plans.push({
+    icon: '🧘', badge: 'hp-badge-stretch', label: `Giãn cơ ${stretchSessions} lần/ngày (10 phút/lần)`,
+    detail: `Mỗi 2 giờ ngồi học: đứng dậy vươn vai, xoay cổ, đi bộ nhẹ. Ngăn ngừa hội chứng "text neck" và đau cột sống cổ C5-C6.`
+  });
+
+  if (parseFloat(avgH) >= 6) {
+    plans.push({
+      icon: '⚠️', badge: 'hp-badge-danger', label: `Cảnh báo: Trung bình ${avgH}h màn hình/ngày`,
+      detail: `WHO khuyến nghị thiếu niên không quá 2h màn hình/ngày (ngoài giờ học). Tiếp xúc quá nhiều có thể gây rối loạn giấc ngủ do ánh sáng xanh ức chế melatonin.`
+    });
+  }
+
+  const plansHTML = plans.map(p => `
+    <div class="health-plan-item">
+      <div class="health-plan-icon">${p.icon}</div>
+      <div class="health-plan-info">
+        <strong>${p.label}</strong>
+        <span>${p.detail}</span>
+      </div>
+      <span class="health-plan-badge ${p.badge}">${p.icon}</span>
+    </div>`).join('');
+
+  // Identify dangerous continuous blocks
+  let dangerDays = DAYS.filter(d => dayScreenHours[d] >= 8).map(d => DAY_NAMES_SHORT[DAYS.indexOf(d)]);
+  const dangerNote = dangerDays.length > 0
+    ? `<span style="color:#fca5a5">⚠️ Ngày nguy hiểm (≥8h màn hình): <strong>${dangerDays.join(', ')}</strong> — Cần chèn thêm giải lao!</span>`
+    : `<span style="color:#a7f3d0">✅ Không có ngày nào vượt ngưỡng nguy hiểm 8h/ngày.</span>`;
+
+  return `
+    <div class="screentime-advisor">
+      <div class="screentime-title">📊 Phân Tích Thời Gian Sử Dụng Màn Hình & Kế Hoạch Bảo Vệ Cơ Thể</div>
+      <div class="screentime-subtitle">Dựa trên lịch học tối ưu, hệ thống tính tổng giờ tiếp xúc màn hình và đưa ra giải pháp y khoa bảo vệ mắt, cột sống và não bộ.</div>
+      <div class="screentime-grid">
+        <div class="screentime-chart-section">
+          <h4>📅 Giờ Màn Hình Mỗi Ngày</h4>
+          ${barsHTML}
+        </div>
+        <div class="health-plan-section">
+          <h4>🛡️ Kế Hoạch Bảo Vệ Sức Khỏe</h4>
+          ${plansHTML}
+        </div>
+      </div>
+      <div class="screentime-summary">
+        📈 <strong>Tổng tuần: ${totalWeekH}h</strong> màn hình (trung bình ${avgH}h/ngày) &nbsp;|&nbsp; ${dangerNote}
+      </div>
+    </div>`;
+}
 </script>
+
 </body>
 </html>

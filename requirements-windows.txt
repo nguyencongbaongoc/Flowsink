@@ -1,0 +1,10 @@
+# Windows dependencies.
+#
+# All core dependencies are cross-platform.  This file exists so Windows
+# users can install with a single obvious command:
+#
+#     pip install -r requirements-windows.txt
+#
+# It includes the same packages as requirements.txt.  psutil and mss are
+# shipped as wheels for Windows and require no native build toolchain.
+-r requirements.txt

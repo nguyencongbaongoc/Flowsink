@@ -1,6 +1,17 @@
 {
   "name": "flowsink",
   "private": true,
+  "type": "module",
   "version": "1.0.0",
-  "description": "FocusMate - AI Health & Routine Optimizer (HTML/CSS/JS)"
+  "description": "FocusMate - AI Health & Routine Optimizer (HTML/CSS/JS)",
+  "scripts": {
+    "dev": "vite --open",
+    "start": "vite",
+    "preview": "vite preview",
+    "backend": "python -m uvicorn activity_engine.server:app --reload --port 8000",
+    "server": "python -m uvicorn activity_engine.server:app --port 8000"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
 }

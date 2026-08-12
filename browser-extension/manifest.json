@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Flowsink Browser Monitor",
+  "version": "1.0.0",
+  "description": "Gửi telemetry tab trình duyệt ẩn danh tới Flowsink Activity Engine cục bộ. Không thu thập mật khẩu, cookie, nội dung trang hay thông tin nhạy cảm.",
+  "permissions": ["tabs"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

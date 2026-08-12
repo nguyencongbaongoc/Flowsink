@@ -24,12 +24,21 @@ pip install -e .[dev]
 ### Running CLI
 
 ```bash
-# System diagnostic check
+# System diagnostic check (works on macOS and Windows)
 activity-engine doctor
 
 # Simulate events and observe policy evaluation
 activity-engine simulate --events 10
+
+# Live monitoring (macOS/Linux: mock; Windows: real backend automatically)
+activity-engine monitor --mode dry_run
+
+# Force the real Windows backend (process + network)
+activity-engine monitor --mode dry_run --backend real
 ```
+
+> **Windows users:** double-click `setup_windows.bat` once, then `run_windows.bat`.
+> See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for details.
 
 ### Integration Example
 
@@ -48,6 +57,18 @@ await engine.feed_raw({
 snapshot = engine.current_state()
 print(f"Current State: {snapshot.state.value}") # State: WARNING
 ```
+
+## Platform Support
+
+| Feature            | macOS            | Windows 10/11                 |
+|--------------------|------------------|-------------------------------|
+| Process monitoring | mock             | real (`Win32` + `psutil`)     |
+| Screen capture     | mock (unavailable)| real (`mss` / GDI)           |
+| Network monitoring | mock             | real (`psutil.net_connections`) |
+| Browser monitoring | stub             | stub (Phase 2)                |
+| Action executor    | mock             | mock (Phase 2)                |
+
+See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for the full Windows guide.
 
 For detailed guides, see the `docs/` folder:
 - [Architecture Guide](docs/ARCHITECTURE.md)
